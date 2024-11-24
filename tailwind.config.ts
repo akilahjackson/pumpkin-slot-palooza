@@ -17,22 +17,8 @@ export default {
       },
     },
     extend: {
-      keyframes: {
-        "fade-in-down": {
-          "0%": {
-            opacity: "0",
-            transform: "translateY(-20px)"
-          },
-          "100%": {
-            opacity: "1",
-            transform: "translateY(0)"
-          },
-        }
-      },
-      animation: {
-        "fade-in-down": "fade-in-down 0.3s ease-out"
-      },
       colors: {
+        'casino-background': '#1A1F2C',
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -66,6 +52,21 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+      },
+      keyframes: {
+        "fade-in-down": {
+          "0%": {
+            opacity: "0",
+            transform: "translateY(-20px)"
+          },
+          "100%": {
+            opacity: "1",
+            transform: "translateY(0)"
+          },
+        }
+      },
+      animation: {
+        "fade-in-down": "fade-in-down 0.3s ease-out"
       },
       borderRadius: {
         lg: "var(--radius)",
