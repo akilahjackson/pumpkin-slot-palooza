@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { GRID_SIZE, PUMPKIN_TYPES, PAYLINES } from "../utils/gameConstants";
 import { Cell, Position } from "../utils/gameTypes";
 import { createInitialGrid, isValidPosition, isAdjacent } from "../utils/gameLogic";
+import { toast } from "@/components/ui/use-toast";
 
 const GameGrid = () => {
   const [grid, setGrid] = useState<Cell[][]>([]);
   const [selectedCell, setSelectedCell] = useState<Position | null>(null);
   const [isChecking, setIsChecking] = useState(false);
+  const [totalWinnings, setTotalWinnings] = useState(0);
 
   useEffect(() => {
     initializeGrid();
@@ -25,28 +27,52 @@ const GameGrid = () => {
     }, 500);
   };
 
+  const calculatePayout = (matchCount: number): number => {
+    // Base payout of 0.01 SOL per match, multiplied by the number of matching pieces
+    return 0.01 * matchCount;
+  };
+
   const checkAllPaylines = async () => {
     if (!grid.length) return false;
     
     setIsChecking(true);
     let hasMatches = false;
     const newGrid = [...grid];
+    let currentWinnings = 0;
     
-    PAYLINES.forEach(payline => {
-      // Validate each position in the payline before accessing
+    PAYLINES.forEach((payline, paylineIndex) => {
       const validPositions = payline.filter(([row, col]) => 
         isValidPosition(row, col)
       );
 
-      if (validPositions.length < 3) return; // Skip if not enough valid positions
+      if (validPositions.length < 3) return;
 
       const symbols = validPositions.map(([row, col]) => newGrid[row][col].type);
       
       for (let i = 0; i < symbols.length - 2; i++) {
         if (symbols[i] === symbols[i + 1] && symbols[i] === symbols[i + 2]) {
-          validPositions.slice(i, i + 3).forEach(([row, col]) => {
+          // Count how many pieces match in sequence
+          let matchCount = 3;
+          for (let j = i + 3; j < symbols.length; j++) {
+            if (symbols[j] === symbols[i]) {
+              matchCount++;
+            } else {
+              break;
+            }
+          }
+
+          const payout = calculatePayout(matchCount);
+          currentWinnings += payout;
+
+          validPositions.slice(i, i + matchCount).forEach(([row, col]) => {
             newGrid[row][col].matched = true;
             hasMatches = true;
+          });
+
+          // Show toast message for the win
+          toast({
+            title: "Winner! 🎉",
+            description: `Payline ${paylineIndex + 1}: ${matchCount} matches for ${payout.toFixed(3)} SOL`,
           });
         }
       }
@@ -54,6 +80,7 @@ const GameGrid = () => {
 
     if (hasMatches) {
       setGrid(newGrid);
+      setTotalWinnings(prev => prev + currentWinnings);
       await new Promise(resolve => setTimeout(resolve, 500));
       await handleMatches();
     }
@@ -154,25 +181,34 @@ const GameGrid = () => {
   if (!grid.length) return null;
 
   return (
-    <div className="game-grid">
-      {grid.map((row, i) =>
-        row.map((cell, j) => (
-          <div
-            key={cell.key}
-            className={`cell
-              ${cell.matched ? "animate-pulse bg-white/20" : ""} 
-              ${cell.isDropping ? "animate-fade-in-down" : ""}
-              ${selectedCell?.row === i && selectedCell?.col === j ? "ring-2 ring-white" : ""}
-              cursor-pointer hover:bg-white/20 transition-all duration-300
-              rounded-lg backdrop-blur-sm`}
-            onClick={() => handleCellClick(i, j)}
-          >
-            <span className="text-3xl transform transition-transform hover:scale-110">
-              {PUMPKIN_TYPES[cell.type]}
-            </span>
-          </div>
-        ))
-      )}
+    <div className="space-y-4">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-bold">Match 3 Game</h2>
+        <div className="text-lg font-semibold text-casino-purple">
+          Total Winnings: {totalWinnings.toFixed(3)} SOL
+        </div>
+      </div>
+      
+      <div className="game-grid">
+        {grid.map((row, i) =>
+          row.map((cell, j) => (
+            <div
+              key={cell.key}
+              className={`cell
+                ${cell.matched ? "animate-pulse bg-white/20" : ""} 
+                ${cell.isDropping ? "animate-fade-in-down" : ""}
+                ${selectedCell?.row === i && selectedCell?.col === j ? "ring-2 ring-white" : ""}
+                cursor-pointer hover:bg-white/20 transition-all duration-300
+                rounded-lg backdrop-blur-sm`}
+              onClick={() => handleCellClick(i, j)}
+            >
+              <span className="text-3xl transform transition-transform hover:scale-110">
+                {PUMPKIN_TYPES[cell.type]}
+              </span>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 };
