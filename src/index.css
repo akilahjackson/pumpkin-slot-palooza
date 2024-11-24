@@ -50,6 +50,12 @@
   justify-content: center;
   background: rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
+  position: relative;
+}
+
+.cell.selected {
+  background: rgba(157, 78, 221, 0.3);
+  box-shadow: 0 0 10px rgba(157, 78, 221, 0.5);
 }
 
 .cell.matched {
@@ -60,4 +66,28 @@
   width: 80%;
   height: 80%;
   animation: drop 0.5s ease-in-out;
+  user-select: none;
+}
+
+@keyframes glow {
+  0% {
+    background: rgba(157, 78, 221, 0.3);
+  }
+  50% {
+    background: rgba(157, 78, 221, 0.5);
+  }
+  100% {
+    background: rgba(157, 78, 221, 0.3);
+  }
+}
+
+@keyframes drop {
+  0% {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
