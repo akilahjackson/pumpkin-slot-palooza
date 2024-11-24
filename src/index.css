@@ -32,62 +32,25 @@
   }
 }
 
-.game-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 4px;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 8px;
-  border-radius: 8px;
-  box-shadow: 0 0 20px rgba(157, 78, 221, 0.2);
-}
-
-.cell {
-  aspect-ratio: 1;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-.cell.selected {
-  background: rgba(157, 78, 221, 0.3);
-  box-shadow: 0 0 10px rgba(157, 78, 221, 0.5);
-}
-
-.cell.matched {
-  animation: glow 1s ease-in-out infinite;
-}
-
-.pumpkin {
-  width: 80%;
-  height: 80%;
-  animation: drop 0.5s ease-in-out;
-  user-select: none;
-}
-
-@keyframes glow {
-  0% {
-    background: rgba(157, 78, 221, 0.3);
+@layer components {
+  .game-grid {
+    @apply grid gap-1 p-2 rounded-lg bg-white/5 shadow-[0_0_20px_rgba(157,78,221,0.2)];
+    grid-template-columns: repeat(6, 1fr);
   }
-  50% {
-    background: rgba(157, 78, 221, 0.5);
-  }
-  100% {
-    background: rgba(157, 78, 221, 0.3);
-  }
-}
 
-@keyframes drop {
-  0% {
-    transform: translateY(-20px);
-    opacity: 0;
+  .cell {
+    @apply aspect-square rounded flex items-center justify-center bg-white/10 transition-all duration-300 relative;
   }
-  100% {
-    transform: translateY(0);
-    opacity: 1;
+
+  .cell.selected {
+    @apply bg-[rgba(157,78,221,0.3)] shadow-[0_0_10px_rgba(157,78,221,0.5)];
+  }
+
+  .cell.matched {
+    @apply animate-glow;
+  }
+
+  .pumpkin {
+    @apply w-4/5 h-4/5 animate-drop select-none;
   }
 }
