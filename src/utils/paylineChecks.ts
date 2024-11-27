@@ -1,5 +1,5 @@
 import { Cell } from './gameTypes';
-import { GAME_PIECES } from './gameConstants';
+import { GAME_PIECES, PUMPKIN_TYPES } from './gameConstants';
 
 export interface PaylineCheckResult {
   hasMatches: boolean;
