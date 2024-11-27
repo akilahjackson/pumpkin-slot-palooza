@@ -23,6 +23,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   const [showWinDialog, setShowWinDialog] = useState(false);
   const [isBigWin, setIsBigWin] = useState(false);
   const [isDisplayingWin, setIsDisplayingWin] = useState(false);
+  const [totalWinnings, setTotalWinnings] = useState(0); // Add this line
   const baseBet = 0.01;
 
   const triggerWinningEffects = () => {
@@ -109,7 +110,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     
     let hasMatches = false;
     const newGrid = [...grid];
-    let totalWinnings = 0;
+    let currentTotalWinnings = 0; // Rename to avoid shadowing
     let highestMultiplier = 0;
     
     PAYLINES.forEach((payline) => {
@@ -118,7 +119,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       
       if (result.hasMatches) {
         hasMatches = true;
-        totalWinnings += result.winnings;
+        currentTotalWinnings += result.winnings;
         onWinningsUpdate(result.winnings);
         
         const multiplier = result.winnings / (baseBet * betMultiplier);
@@ -149,6 +150,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       audioManager.stopBackgroundMusic();
       audioManager.playWinSound();
       setIsDisplayingWin(true);
+      setTotalWinnings(currentTotalWinnings); // Update totalWinnings state
       
       // Only show win dialog for big wins (50x or higher)
       if (highestMultiplier >= 50) {
