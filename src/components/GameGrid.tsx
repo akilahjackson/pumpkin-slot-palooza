@@ -77,6 +77,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     setIsBigWin(false);
     setIsDisplayingWin(false);
     setHasWildBonus(false);
+    setIsSpinning(false);
   };
 
   const checkPaylines = () => {
@@ -111,11 +112,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       
       setGrid(result.updatedGrid);
       triggerWinningEffects();
-      
-      // Delay setting isSpinning to false to allow animations to complete
-      setTimeout(() => {
-        setIsSpinning(false);
-      }, 500);
+      setIsSpinning(false);
     }
   };
 
@@ -143,25 +140,33 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       return;
     }
 
-    // Add dropping animation flag to each cell
     const gridWithKeys = newGrid.map((row, rowIndex) => 
       row.map((cell, colIndex) => ({
         ...cell,
         key: `${Date.now()}-${Math.random()}`,
         isDropping: true,
-        dropDelay: (rowIndex * GRID_SIZE + colIndex) * 100 // 100ms delay per piece
+        dropDelay: (rowIndex * GRID_SIZE + colIndex) * 100
       }))
     );
     
     setGrid(gridWithKeys);
     
-    // Calculate total delay based on grid size and piece delay
     const totalPieces = GRID_SIZE * GRID_SIZE;
-    const pieceDelay = 100; // 100ms delay per piece
+    const pieceDelay = 100;
     const totalDelay = totalPieces * pieceDelay;
     
     console.log(`Setting timeout for ${totalDelay}ms before checking paylines`);
-    setTimeout(checkPaylines, totalDelay + 500); // Add extra 500ms buffer for animations
+    setTimeout(checkPaylines, totalDelay + 500);
+  };
+
+  const handleLoseDialogClose = () => {
+    setShowLoseDialog(false);
+    setIsDisplayingWin(false);
+  };
+
+  const handleWinDialogClose = () => {
+    setShowWinDialog(false);
+    setIsDisplayingWin(false);
   };
 
   return (
@@ -176,8 +181,8 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
           winMultiplier={Math.floor(totalWinnings / baseBet)}
           totalWinAmount={totalWinnings}
           hasWildBonus={hasWildBonus}
-          onLoseDialogClose={() => setShowLoseDialog(false)}
-          onWinDialogClose={() => setShowWinDialog(false)}
+          onLoseDialogClose={handleLoseDialogClose}
+          onWinDialogClose={handleWinDialogClose}
         />
       </div>
     </Card>
