@@ -22,7 +22,8 @@ export const useGameState = (
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const triggerWinningEffects = () => {
-    console.log('🎉 Triggering winning effects animation');
+    console.log('🎉 Starting winning effects sequence');
+    console.log('💫 Triggering confetti animation');
     const duration = 2000;
     const end = Date.now() + duration;
 
@@ -48,10 +49,12 @@ export const useGameState = (
       }
     };
     frame();
+    console.log('✨ Confetti animation started');
   };
 
   const resetGameState = () => {
     console.log('🔄 Resetting game state');
+    console.log('🎮 Clearing previous game dialogs and states');
     setShowLoseDialog(false);
     setShowWinDialog(false);
     setIsBigWin(false);
@@ -59,26 +62,32 @@ export const useGameState = (
   };
 
   const checkPaylines = async () => {
-    console.log('🔍 Starting payline check');
+    console.log('🔍 Starting payline check sequence');
+    console.log('📊 Grid state before check:', grid);
+
     if (!grid || grid.length === 0) {
       console.error('❌ Cannot check paylines: grid is empty');
       setIsSpinning(false);
       return;
     }
 
-    console.log('📊 Current grid state before check:', grid);
     const result = checkGameState(grid, baseBet, betMultiplier, onWinningsUpdate);
     console.log('✨ Game state check result:', result);
+    console.log('💰 Total winnings:', result.totalWinnings);
+    console.log('🎯 Has matches:', result.hasMatches);
+    console.log('🌟 Is big win:', result.isBigWin);
+    console.log('🃏 Has wild bonus:', result.hasWildBonus);
     
     if (!result.hasMatches) {
-      console.log('😢 No matches found');
+      console.log('😢 No matches found - triggering lose sequence');
       audioManager.stopBackgroundMusic();
       audioManager.playLoseSound();
       setShowLoseDialog(true);
     } else {
       console.log('🎯 Matches found! Starting win sequence');
-      
       console.log('🎲 Updating matched states in grid');
+      
+      // Update matched states in place
       result.updatedGrid.forEach((row, i) => {
         row.forEach((cell, j) => {
           if (cell.matched) {
@@ -95,6 +104,8 @@ export const useGameState = (
       console.log('🎵 Playing win sound effects');
       audioManager.stopBackgroundMusic();
       audioManager.playWinSound();
+      
+      console.log('💰 Setting total winnings:', result.totalWinnings);
       setTotalWinnings(result.totalWinnings);
       setHasWildBonus(result.hasWildBonus);
       
@@ -104,7 +115,7 @@ export const useGameState = (
         setShowWinDialog(true);
       }
       
-      console.log('🎊 Triggering winning animations');
+      console.log('🎊 Starting winning animations sequence');
       triggerWinningEffects();
     }
     
