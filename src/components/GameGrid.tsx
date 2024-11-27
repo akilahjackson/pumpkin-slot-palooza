@@ -65,28 +65,28 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
         requestAnimationFrame(frame);
       }
     };
-
     frame();
   };
 
   const resetGameState = () => {
+    console.log('Resetting game state');
     setShowLoseDialog(false);
     setShowWinDialog(false);
     setIsBigWin(false);
-    setIsSpinning(false);
     setIsDisplayingWin(false);
     setHasWildBonus(false);
   };
 
   const checkPaylines = () => {
+    console.log('Checking paylines');
     if (!grid || grid.length === 0) {
       console.error('Cannot check paylines: grid is empty');
       setIsSpinning(false);
       return;
     }
 
-    console.log('Checking paylines for current game pieces');
     const result = checkGameState(grid, baseBet, betMultiplier, onWinningsUpdate);
+    console.log('Game state check result:', result);
     
     if (!result.hasMatches) {
       console.log('No matches found');
@@ -106,16 +106,26 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
         setShowWinDialog(true);
       }
       
+      // Update grid with matched cells for animation
+      setGrid(result.updatedGrid);
       triggerWinningEffects();
     }
-    setIsSpinning(false);
+    
+    // Always ensure spinning state is reset
+    setTimeout(() => {
+      setIsSpinning(false);
+      setIsInitialLoad(false);
+    }, 500);
   };
 
   const spin = async () => {
-    if (isSpinning || isDisplayingWin) return;
+    if (isSpinning || isDisplayingWin) {
+      console.log('Spin blocked - already spinning or displaying win');
+      return;
+    }
     
+    console.log('Starting new spin');
     resetGameState();
-    setIsInitialLoad(false);
     setIsSpinning(true);
     audioManager.stopAllSoundEffects();
     audioManager.playBackgroundMusic();
@@ -138,6 +148,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
         isDropping: true
       }))
     );
+    
     setGrid(gridWithKeys);
 
     const totalPieces = GRID_SIZE * GRID_SIZE;
