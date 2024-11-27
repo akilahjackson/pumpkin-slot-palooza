@@ -21,10 +21,14 @@ const GamePiece = ({ type, isMatched, isSelected, isDropping, dropDelay = 0 }: G
       className={cn(
         "relative w-full h-full flex items-center justify-center",
         "rounded-lg transition-all duration-300",
-        "transform hover:scale-105",
-        isMatched && isWild ? "animate-piece-flash bg-yellow-500/30" : 
-        isMatched ? "animate-piece-glow bg-amber-500/30" : 
-        "bg-amber-900/20 backdrop-blur-sm",
+        "transform",
+        isMatched && [
+          "bg-amber-500/50",  // opaque background for matched pieces
+          "border-2 border-amber-400", // border for matched pieces
+          "scale-105", // enlarge matched pieces
+          isWild ? "animate-piece-flash" : "animate-piece-glow"
+        ],
+        !isMatched && "bg-amber-900/20 backdrop-blur-sm",
         isSelected && "ring-2 ring-amber-400",
         !isMatched && isDropping && "animate-piece-drop",
         !isMatched && !isDropping && "animate-piece-enter"
@@ -34,9 +38,8 @@ const GamePiece = ({ type, isMatched, isSelected, isDropping, dropDelay = 0 }: G
         className={cn(
           "text-3xl transform transition-all duration-300",
           "rounded-lg p-2",
-          isMatched ? "text-white scale-125" : "bg-amber-400/5",
+          isMatched ? "text-white" : "bg-amber-400/5",
           isWild && "text-yellow-300 font-bold",
-          isMatched && "animate-bounce",
           "hover:scale-110 select-none"
         )}
       >
