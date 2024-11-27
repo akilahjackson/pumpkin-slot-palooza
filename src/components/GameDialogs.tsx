@@ -34,7 +34,7 @@ const GameDialogs = ({
         <WinningDialog
           isOpen={showWinDialog}
           onClose={onWinDialogClose}
-          message={`MASSIVE WIN! 🎰 🎉\n${winMultiplier}X MULTIPLIER!\nTotal Win: ${totalWinAmount.toFixed(3)} SOL`}
+          message={`MASSIVE WIN! 🎰 🎉\n${winMultiplier}X MULTIPLIER!\nTotal Win: ${totalWinAmount.toFixed(3)} SOL${hasWildBonus ? '\nIncludes Wild Bonus! 🌟' : ''}`}
           emoji={<Trophy className="text-yellow-500 w-16 h-16 animate-flash" />}
           duration={5000}
           className="animate-flash"

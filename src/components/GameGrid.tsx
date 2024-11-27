@@ -112,6 +112,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     const newGrid = [...grid];
     let currentTotalWinnings = 0;
     let highestMultiplier = 0;
+    let hasWildBonus = false;
     
     PAYLINES.forEach((payline) => {
       const result = handlePaylineCheck(payline, newGrid, baseBet, betMultiplier);
@@ -127,6 +128,10 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
         
         if (multiplier > highestMultiplier) {
           highestMultiplier = multiplier;
+        }
+
+        if (result.hasWild) {
+          hasWildBonus = true;
         }
 
         const isBigWinAmount = multiplier >= 50;
@@ -155,7 +160,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       // Show toast notification for any win
       toast({
         title: "Winner! 🎉",
-        description: `You won ${currentTotalWinnings.toFixed(3)} SOL!`,
+        description: `You won ${currentTotalWinnings.toFixed(3)} SOL!${hasWildBonus ? ' (Including Wild Bonus! 🌟)' : ''}`,
         duration: 3000,
       });
       
