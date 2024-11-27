@@ -67,10 +67,11 @@ export const checkGameState = (
     }
   });
 
-  // Ensure the transformation maintains the tuple type
-  const uniqueMatchedPositions: [number, number][] = Array.from(matchedPositionsSet).map(pos => {
+  // Convert the Set of position strings to an array of tuples
+  const positions = Array.from(matchedPositionsSet);
+  const uniqueMatchedPositions: [number, number][] = positions.map(pos => {
     const [row, col] = pos.split(',').map(Number);
-    return [row, col] as [number, number]; // Explicitly type the tuple
+    return [row, col] as const;
   });
 
   const snapshot = createGameStateSnapshot(grid, uniqueMatchedPositions);
