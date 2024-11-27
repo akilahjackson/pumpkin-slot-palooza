@@ -3,12 +3,12 @@ import { GRID_SIZE, PUMPKIN_TYPES, PAYLINES } from "../utils/gameConstants";
 import { Cell } from "../utils/gameTypes";
 import { createInitialGrid } from "../utils/gameLogic";
 import { toast } from "@/components/ui/use-toast";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import GamePiece from "./GamePiece";
 import { audioManager } from "@/utils/audio";
 import { handlePaylineCheck } from "@/utils/paylineUtils";
 import GameDialogs from "./GameDialogs";
+import GameBoard from "./GameBoard";
+import GameControls from "./GameControls";
 
 interface GameGridProps {
   betMultiplier: number;
@@ -21,7 +21,6 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   const [showLoseDialog, setShowLoseDialog] = useState(false);
   const [showWinDialog, setShowWinDialog] = useState(false);
   const baseBet = 0.01;
-  const [hasWinningCombination, setHasWinningCombination] = useState(false);
 
   const initializeGrid = () => {
     const newGrid = createInitialGrid();
@@ -40,7 +39,6 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     if (isSpinning) return;
     
     setIsSpinning(true);
-    setHasWinningCombination(false);
     setShowLoseDialog(false);
     setShowWinDialog(false);
     audioManager.stopAllSoundEffects();
@@ -79,14 +77,11 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
         totalWinnings += result.winnings;
         onWinningsUpdate(result.winnings);
         
-        if (!hasWinningCombination) {
-          setHasWinningCombination(true);
-          // Only show win dialog for big wins (50x bet or more)
-          if (result.winnings >= baseBet * betMultiplier * 50) {
-            setShowWinDialog(true);
-            audioManager.stopBackgroundMusic();
-            audioManager.playWinSound();
-          }
+        // Show win dialog for big wins (50x bet or more)
+        if (result.winnings >= baseBet * betMultiplier * 50) {
+          setShowWinDialog(true);
+          audioManager.stopBackgroundMusic();
+          audioManager.playWinSound();
         }
 
         toast({
@@ -97,6 +92,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       }
     });
 
+    // Only show lose dialog and play lose sound if there are no matches
     if (!hasMatches) {
       audioManager.stopBackgroundMusic();
       audioManager.playLoseSound();
@@ -166,32 +162,8 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   return (
     <Card className="p-8 bg-gradient-to-b from-amber-900/[0.15] to-orange-900/[0.15] border-amber-600/20 backdrop-blur-sm shadow-xl">
       <div className="space-y-6">
-        <div className="game-grid">
-          {grid.map((row, i) =>
-            row.map((cell, j) => (
-              <div
-                key={cell.key}
-                className="cell"
-              >
-                <GamePiece
-                  type={PUMPKIN_TYPES[cell.type]}
-                  isMatched={cell.matched}
-                  isSelected={false}
-                  isDropping={cell.isDropping}
-                />
-              </div>
-            ))
-          )}
-        </div>
-        
-        <Button
-          onClick={spin}
-          disabled={isSpinning}
-          className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-bold py-3"
-        >
-          {isSpinning ? "Spinning..." : "Spin"}
-        </Button>
-
+        <GameBoard grid={grid} />
+        <GameControls onSpin={spin} isSpinning={isSpinning} />
         <GameDialogs
           showLoseDialog={showLoseDialog}
           showWinDialog={showWinDialog}
