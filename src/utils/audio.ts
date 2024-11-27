@@ -14,14 +14,13 @@ class AudioManager {
     this.winSound = new Audio('/sounds/win.mp3');
     this.loseSound = new Audio('/sounds/lose.mp3');
 
-    // Add event listener to track when win sound finishes
     this.winSound.addEventListener('ended', () => {
       this.isWinSoundPlaying = false;
-      this.backgroundMusic.play();
+      this.playBackgroundMusic();
     });
 
     this.loseSound.addEventListener('ended', () => {
-      this.backgroundMusic.play();
+      this.playBackgroundMusic();
     });
   }
 
@@ -35,9 +34,9 @@ class AudioManager {
   toggleMute(): boolean {
     this.isMuted = !this.isMuted;
     if (this.isMuted) {
-      this.backgroundMusic.pause();
+      this.stopBackgroundMusic();
     } else {
-      this.backgroundMusic.play();
+      this.playBackgroundMusic();
     }
     return this.isMuted;
   }
@@ -45,10 +44,17 @@ class AudioManager {
   playBackgroundMusic() {
     if (!this.isMuted) {
       console.log('Playing background music');
+      this.backgroundMusic.currentTime = 0;
       this.backgroundMusic.play().catch(() => {
         console.log('Background music auto-play prevented');
       });
     }
+  }
+
+  stopBackgroundMusic() {
+    console.log('Stopping background music');
+    this.backgroundMusic.pause();
+    this.backgroundMusic.currentTime = 0;
   }
 
   playDropSound() {
@@ -62,7 +68,6 @@ class AudioManager {
     if (!this.isMuted && !this.isWinSoundPlaying) {
       console.log('Playing win sound');
       this.isWinSoundPlaying = true;
-      this.backgroundMusic.pause();
       this.winSound.currentTime = 0;
       this.winSound.play().catch(console.error);
     }
@@ -71,7 +76,6 @@ class AudioManager {
   playLoseSound() {
     if (!this.isMuted && !this.isWinSoundPlaying) {
       console.log('Playing lose sound');
-      this.backgroundMusic.pause();
       this.loseSound.currentTime = 0;
       this.loseSound.play().catch(console.error);
     }

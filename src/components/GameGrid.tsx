@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import GamePiece from "./GamePiece";
 import { audioManager } from "@/utils/audio";
+import { handlePaylineCheck } from "@/utils/paylineUtils";
 
 interface GameGridProps {
   betMultiplier: number;
@@ -32,33 +33,26 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     }, 500);
   };
 
-  const calculatePayout = (matchCount: number, hasWild: boolean): number => {
-    const basePayout = baseBet * betMultiplier * matchCount;
-    return hasWild ? basePayout * WILD_MULTIPLIER : basePayout;
-  };
-
   const spin = async () => {
     if (isSpinning) return;
     
     setIsSpinning(true);
     setHasWinningCombination(false);
     audioManager.stopAllSoundEffects();
+    audioManager.playBackgroundMusic(); // Reset and play background music on spin
     
-    // Deduct bet amount before spin
     onWinningsUpdate(-(baseBet * betMultiplier));
     console.log('Bet deducted:', -(baseBet * betMultiplier));
     
     const newGrid = createInitialGrid();
     setGrid(newGrid);
 
-    // Wait for grid animation to complete before checking results
     setTimeout(() => {
       const updatedGrid = newGrid.map(row =>
         row.map(cell => ({ ...cell, isDropping: false }))
       );
       setGrid(updatedGrid);
       
-      // Check for wins after grid has settled
       setTimeout(() => {
         checkAllPaylines();
         setIsSpinning(false);
@@ -66,7 +60,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     }, 1000);
   };
 
-  const checkAllPaylines = async (): Promise<boolean> => {
+  const checkAllPaylines = async () => {
     if (!grid.length) return false;
     
     let hasMatches = false;
@@ -74,61 +68,29 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     let currentWinnings = 0;
     
     PAYLINES.forEach((payline) => {
-      const validPositions = payline.filter(([row, col]) => 
-        isValidPosition(row, col)
-      );
-
-      if (validPositions.length < 3) return;
-
-      const symbols = validPositions.map(([row, col]) => newGrid[row][col].type);
-      
-      for (let i = 0; i < symbols.length - 2; i++) {
-        const hasWild = symbols.slice(i, i + 3).includes(GAME_PIECES.WILD);
-        const symbolToMatch = symbols[i] === GAME_PIECES.WILD ? symbols[i + 1] : symbols[i];
+      const result = handlePaylineCheck(payline, newGrid, baseBet, betMultiplier);
+      if (result.hasMatches) {
+        hasMatches = true;
+        currentWinnings += result.winnings;
+        onWinningsUpdate(result.winnings);
         
-        if (symbolToMatch === GAME_PIECES.WILD) continue;
-
-        let matchCount = 0;
-        let j = i;
-
-        while (j < symbols.length && 
-              (symbols[j] === symbolToMatch || symbols[j] === GAME_PIECES.WILD)) {
-          matchCount++;
-          j++;
+        if (!hasWinningCombination) {
+          setHasWinningCombination(true);
+          audioManager.stopBackgroundMusic(); // Stop background music before playing win sound
+          audioManager.playWinSound();
         }
 
-        if (matchCount >= 3) {
-          const payout = calculatePayout(matchCount, hasWild);
-          currentWinnings += payout;
-          onWinningsUpdate(payout);
-          console.log('Win payout:', payout);
-
-          if (!hasMatches) {
-            setHasWinningCombination(true);
-            audioManager.playWinSound();
-          }
-
-          validPositions.slice(i, i + matchCount).forEach(([row, col]) => {
-            if (isValidPosition(row, col)) {
-              newGrid[row][col].matched = true;
-              hasMatches = true;
-            }
-          });
-
-          toast({
-            title: "🌟 Winning Combination!",
-            description: `${matchCount} matches with ${payout.toFixed(3)} SOL payout${hasWild ? " (Wild Bonus!)" : ""}`,
-            className: "bg-gradient-to-r from-amber-200 to-yellow-400 text-amber-900",
-          });
-        }
+        toast({
+          title: "🌟 Winning Combination!",
+          description: `${result.matchCount} matches with ${result.winnings.toFixed(3)} SOL payout${result.hasWild ? " (Wild Bonus!)" : ""}`,
+          className: "bg-gradient-to-r from-amber-200 to-yellow-400 text-amber-900",
+        });
       }
     });
 
-    // Only play lose sound after all paylines have been checked and no matches found
-    if (!hasMatches && !hasWinningCombination) {
-      setTimeout(() => {
-        audioManager.playLoseSound();
-      }, 1000);
+    if (!hasMatches) {
+      audioManager.stopBackgroundMusic(); // Stop background music before playing lose sound
+      audioManager.playLoseSound();
     }
 
     if (hasMatches) {
