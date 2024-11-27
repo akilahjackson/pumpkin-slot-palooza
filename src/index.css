@@ -43,7 +43,7 @@
   }
 
   .cell.matched {
-    @apply animate-glow;
+    @apply bg-amber-500/30;
   }
 }
 
@@ -75,9 +75,24 @@
 @keyframes piece-flash {
   0%, 100% {
     opacity: 1;
+    transform: scale(1);
   }
   50% {
     opacity: 0.5;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes piece-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(251, 191, 36, 0.5),
+                0 0 10px rgba(251, 191, 36, 0.3);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.8),
+                0 0 30px rgba(251, 191, 36, 0.5);
+    transform: scale(1.1);
   }
 }
 
@@ -91,4 +106,8 @@
 
 .animate-piece-flash {
   animation: piece-flash 0.8s ease-in-out infinite;
+}
+
+.animate-piece-glow {
+  animation: piece-glow 1s ease-in-out infinite;
 }
