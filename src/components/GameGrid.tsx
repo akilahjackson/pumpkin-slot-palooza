@@ -96,6 +96,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       audioManager.playLoseSound();
       setShowLoseDialog(true);
       setIsSpinning(false);
+      setIsDisplayingWin(false);
     } else {
       console.log('Matches found! Displaying win');
       audioManager.stopBackgroundMusic();
@@ -149,8 +150,13 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     
     setGrid(gridWithKeys);
     
-    // Wait for pieces to drop before checking paylines
-    setTimeout(checkPaylines, 1000);
+    // Calculate total delay based on grid size and piece delay
+    const totalPieces = GRID_SIZE * GRID_SIZE;
+    const pieceDelay = 100; // 100ms delay per piece
+    const totalDelay = totalPieces * pieceDelay;
+    
+    console.log(`Setting timeout for ${totalDelay}ms before checking paylines`);
+    setTimeout(checkPaylines, totalDelay);
   };
 
   return (
