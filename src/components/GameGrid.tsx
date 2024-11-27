@@ -35,6 +35,14 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     }, 500);
   };
 
+  const resetGameState = () => {
+    setShowLoseDialog(false);
+    setShowWinDialog(false);
+    setIsSpinning(false);
+    const newGrid = createInitialGrid();
+    setGrid(newGrid);
+  };
+
   const spin = async () => {
     if (isSpinning) return;
     
@@ -77,7 +85,6 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
         totalWinnings += result.winnings;
         onWinningsUpdate(result.winnings);
         
-        // Show win dialog for big wins (50x bet or more)
         if (result.winnings >= baseBet * betMultiplier * 50) {
           setShowWinDialog(true);
           audioManager.stopBackgroundMusic();
@@ -98,7 +105,10 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       setShowLoseDialog(true);
     }
 
-    setGrid(newGrid);
+    // Reset the grid state after checking paylines
+    setTimeout(() => {
+      resetGameState();
+    }, 1500);
   };
 
   if (!grid.length) {
