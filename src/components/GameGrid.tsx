@@ -85,8 +85,8 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   const checkPaylines = () => {
     if (isInitialLoad) return;
     
+    console.log('Checking paylines for current game pieces');
     const result = checkGameState(grid, baseBet, betMultiplier, onWinningsUpdate);
-    console.log('Checking paylines for potential wins');
     
     if (!result.hasMatches) {
       console.log('No matches found');
@@ -101,7 +101,6 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       setIsDisplayingWin(true);
       setTotalWinnings(result.totalWinnings);
       setHasWildBonus(result.hasWildBonus);
-      setGrid(result.updatedGrid);
       
       if (result.isBigWin) {
         setIsBigWin(true);
@@ -110,10 +109,10 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       
       triggerWinningEffects();
       
+      // Keep current grid pieces visible while showing win
       setTimeout(() => {
         resetGameState();
-        const newGrid = createInitialGrid();
-        setGrid(newGrid);
+        initializeGrid();
       }, 5000);
     }
   };
@@ -142,6 +141,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     );
     setGrid(newGrid);
 
+    // Calculate total delay based on grid size and piece animation time
     const totalPieces = GRID_SIZE * GRID_SIZE;
     const pieceDelay = 100; // 100ms delay between each piece
     const extraDelay = 1000; // Additional 1s delay before checking wins
