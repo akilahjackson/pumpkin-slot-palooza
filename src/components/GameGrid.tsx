@@ -128,9 +128,6 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
           console.log('Big win detected! Multiplier:', multiplier);
           setIsBigWin(true);
           setShowWinDialog(true);
-          audioManager.stopBackgroundMusic();
-          audioManager.playWinSound();
-          triggerWinningEffects();
         }
 
         toast({
@@ -150,6 +147,8 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       setShowLoseDialog(true);
       setTimeout(resetGameState, 1500);
     } else {
+      audioManager.stopBackgroundMusic();
+      audioManager.playWinSound();
       setIsDisplayingWin(true);
       if (!isBigWin) {
         setShowWinDialog(true);
