@@ -17,7 +17,7 @@ const WinningDialog = ({
   onClose, 
   message, 
   emoji = <Clover className="text-green-500 w-16 h-16" />,
-  duration = 5000,
+  duration = 5000,  // Explicitly set default to 5000ms
   className = ''
 }: WinningDialogProps) => {
   useEffect(() => {
