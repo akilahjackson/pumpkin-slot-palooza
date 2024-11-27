@@ -54,24 +54,19 @@ export const useGameState = (
     console.log('🎯 Starting winning sequence');
     console.log('💰 Win amount:', result.totalWinnings);
     
-    // Update matched states and highlight winning pieces
-    result.updatedGrid.forEach((row: Cell[], i: number) => {
-      row.forEach((cell: Cell, j: number) => {
-        if (cell.matched) {
-          console.log(`🎯 Highlighting winning piece at [${i},${j}]`);
-          grid[i][j].matched = true;
-        }
-      });
+    setGrid(prevGrid => {
+      const newGrid = prevGrid.map((row, i) => 
+        row.map((cell, j) => ({
+          ...cell,
+          matched: result.updatedGrid[i][j].matched
+        }))
+      );
+      return newGrid;
     });
-
-    // Force re-render while preserving cell references
-    setGrid([...grid]);
     
-    // Play winning sound effects
     audioManager.stopBackgroundMusic();
     audioManager.playWinSound();
     
-    // Update game state
     setTotalWinnings(result.totalWinnings);
     setHasWildBonus(result.hasWildBonus);
     
@@ -82,7 +77,7 @@ export const useGameState = (
     }
     
     triggerWinningEffects();
-  }, [grid, triggerWinningEffects]);
+  }, [triggerWinningEffects]);
 
   const handleLoseSequence = useCallback(() => {
     console.log('😢 No matches - triggering lose sequence');
@@ -91,12 +86,12 @@ export const useGameState = (
     setShowLoseDialog(true);
   }, []);
 
-  const checkResults = useCallback(async () => {
+  const checkResults = useCallback(() => {
     console.log('🔍 Checking game results');
     const result = checkGameState(grid, baseBet, betMultiplier, onWinningsUpdate);
     
     if (result.hasMatches) {
-      await handleWinningSequence(result);
+      handleWinningSequence(result);
     } else {
       handleLoseSequence();
     }
@@ -148,16 +143,17 @@ export const useGameState = (
     await new Promise(resolve => setTimeout(resolve, totalDelay));
     
     // Remove dropping states
-    const finalGrid = newGrid.map(row => 
-      row.map(cell => ({
-        ...cell,
-        isDropping: false
-      }))
+    setGrid(prevGrid => 
+      prevGrid.map(row => 
+        row.map(cell => ({
+          ...cell,
+          isDropping: false
+        }))
+      )
     );
-    setGrid(finalGrid);
     
     // Check results after animations complete
-    await checkResults();
+    checkResults();
   }, [isSpinning, baseBet, betMultiplier, onWinningsUpdate, checkResults]);
 
   return {
