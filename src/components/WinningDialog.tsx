@@ -17,7 +17,7 @@ const WinningDialog = ({
   onClose, 
   message, 
   emoji = <Clover className="text-green-500 w-16 h-16" />,
-  duration = 5000,  // Explicitly set default to 5000ms
+  duration = 5000,
   className = ''
 }: WinningDialogProps) => {
   useEffect(() => {
@@ -52,9 +52,11 @@ const WinningDialog = ({
             {emoji}
           </motion.div>
           <div className="overflow-hidden">
-            <p className="text-2xl font-bold text-amber-200 leading-relaxed">
-              {message}
-            </p>
+            {message.split('\n').map((line, index) => (
+              <p key={index} className="text-2xl font-bold text-amber-200 leading-relaxed">
+                {line}
+              </p>
+            ))}
           </div>
         </motion.div>
       </DialogContent>
