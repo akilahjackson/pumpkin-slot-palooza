@@ -1,7 +1,6 @@
 import { Cell } from "./gameTypes";
-import { PAYLINES } from "./gameConstants";
+import { PAYLINES, GAME_PIECES, WILD_MULTIPLIER } from "./gameConstants";
 import { handlePaylineCheck } from "./paylineUtils";
-import { toast } from "@/components/ui/use-toast";
 
 interface GameCheckResult {
   hasMatches: boolean;
@@ -52,8 +51,13 @@ export const checkGameState = (
       onWinningsUpdate(result.winnings);
       
       if (result.matchedPositions) {
-        allMatchedPositions = [...allMatchedPositions, ...result.matchedPositions];
-        result.matchedPositions.forEach(([row, col]) => {
+        // Ensure each position is properly typed as a tuple
+        const typedPositions = result.matchedPositions.map(
+          ([row, col]): [number, number] => [row, col]
+        );
+        allMatchedPositions = [...allMatchedPositions, ...typedPositions];
+        
+        typedPositions.forEach(([row, col]) => {
           if (newGrid[row] && newGrid[row][col]) {
             newGrid[row][col].matched = true;
           }
@@ -76,12 +80,6 @@ export const checkGameState = (
   if (hasMatches) {
     console.log('Matches found! Total winnings:', currentTotalWinnings);
     console.log('Matched positions:', allMatchedPositions);
-    
-    toast({
-      title: "Winner! 🎉",
-      description: `You won ${currentTotalWinnings.toFixed(3)} SOL!${hasWildBonus ? ' (Including Wild Bonus! 🌟)' : ''}`,
-      duration: 3000,
-    });
   } else {
     console.log('No matches found in any payline');
   }
