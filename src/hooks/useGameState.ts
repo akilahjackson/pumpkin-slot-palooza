@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Cell } from "../utils/gameTypes";
 import { createInitialGrid } from "../utils/gameLogic";
 import { GRID_SIZE } from "../utils/gameConstants";
@@ -21,9 +21,8 @@ export const useGameState = (
   const [hasWildBonus, setHasWildBonus] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-  const triggerWinningEffects = () => {
-    console.log('🎉 Starting winning effects sequence');
-    console.log('💫 Triggering confetti animation');
+  const triggerWinningEffects = useCallback(() => {
+    console.log('🎉 Triggering winning effects');
     const duration = 2000;
     const end = Date.now() + duration;
 
@@ -49,132 +48,117 @@ export const useGameState = (
       }
     };
     frame();
-    console.log('✨ Confetti animation started');
-  };
+  }, []);
 
-  const resetGameState = () => {
-    console.log('🔄 Resetting game state');
-    console.log('🎮 Clearing previous game dialogs and states');
+  const handleWinningSequence = useCallback((result: any) => {
+    console.log('🎯 Starting winning sequence');
+    console.log('💰 Win amount:', result.totalWinnings);
+    
+    // Update matched states and highlight winning pieces
+    result.updatedGrid.forEach((row: Cell[], i: number) => {
+      row.forEach((cell: Cell, j: number) => {
+        if (cell.matched) {
+          console.log(`🎯 Highlighting winning piece at [${i},${j}]`);
+          grid[i][j].matched = true;
+        }
+      });
+    });
+
+    // Force re-render while preserving cell references
+    setGrid([...grid]);
+    
+    // Play winning sound effects
+    audioManager.stopBackgroundMusic();
+    audioManager.playWinSound();
+    
+    // Update game state
+    setTotalWinnings(result.totalWinnings);
+    setHasWildBonus(result.hasWildBonus);
+    
+    if (result.isBigWin) {
+      console.log('🌟 Big win detected!');
+      setIsBigWin(true);
+      setShowWinDialog(true);
+    }
+    
+    triggerWinningEffects();
+  }, [grid, triggerWinningEffects]);
+
+  const handleLoseSequence = useCallback(() => {
+    console.log('😢 No matches - triggering lose sequence');
+    audioManager.stopBackgroundMusic();
+    audioManager.playLoseSound();
+    setShowLoseDialog(true);
+  }, []);
+
+  const checkResults = useCallback(async () => {
+    console.log('🔍 Checking game results');
+    const result = checkGameState(grid, baseBet, betMultiplier, onWinningsUpdate);
+    
+    if (result.hasMatches) {
+      await handleWinningSequence(result);
+    } else {
+      handleLoseSequence();
+    }
+    
+    setIsSpinning(false);
+  }, [grid, baseBet, betMultiplier, onWinningsUpdate, handleWinningSequence, handleLoseSequence]);
+
+  const spin = useCallback(async () => {
+    if (isSpinning) return;
+    
+    console.log('🎰 Starting new spin');
+    setIsSpinning(true);
+    setIsInitialLoad(false);
+    
+    // Reset previous game state
     setShowLoseDialog(false);
     setShowWinDialog(false);
     setIsBigWin(false);
     setHasWildBonus(false);
-  };
-
-  const checkPaylines = async () => {
-    console.log('🔍 Starting payline check sequence');
-    console.log('📊 Grid state before check:', grid);
-
-    if (!grid || grid.length === 0) {
-      console.error('❌ Cannot check paylines: grid is empty');
-      setIsSpinning(false);
-      return;
-    }
-
-    const result = checkGameState(grid, baseBet, betMultiplier, onWinningsUpdate);
-    console.log('✨ Game state check result:', result);
-    console.log('💰 Total winnings:', result.totalWinnings);
-    console.log('🎯 Has matches:', result.hasMatches);
-    console.log('🌟 Is big win:', result.isBigWin);
-    console.log('🃏 Has wild bonus:', result.hasWildBonus);
     
-    if (!result.hasMatches) {
-      console.log('😢 No matches found - triggering lose sequence');
-      audioManager.stopBackgroundMusic();
-      audioManager.playLoseSound();
-      setShowLoseDialog(true);
-    } else {
-      console.log('🎯 Matches found! Starting win sequence');
-      
-      // Update matched states in place without creating new references
-      result.updatedGrid.forEach((row, i) => {
-        row.forEach((cell, j) => {
-          if (cell.matched) {
-            console.log(`🎯 Marking cell at [${i},${j}] as matched`);
-            grid[i][j].matched = true;
-          }
-        });
-      });
-      
-      // Force re-render while preserving cell references
-      console.log('🔄 Forcing grid re-render while preserving cell references');
-      setGrid([...grid]);
-      
-      console.log('🎵 Playing win sound effects');
-      audioManager.stopBackgroundMusic();
-      audioManager.playWinSound();
-      
-      console.log('💰 Setting total winnings:', result.totalWinnings);
-      setTotalWinnings(result.totalWinnings);
-      setHasWildBonus(result.hasWildBonus);
-      
-      if (result.isBigWin) {
-        console.log('🌟 Big win detected! Triggering special effects');
-        setIsBigWin(true);
-        setShowWinDialog(true);
-      }
-      
-      console.log('🎊 Starting winning animations sequence');
-      triggerWinningEffects();
-    }
-    
-    setIsSpinning(false);
-  };
-
-  const spin = async () => {
-    if (isSpinning) {
-      console.log('⚠️ Spin blocked - already spinning');
-      return;
-    }
-    
-    console.log('🎰 Starting new spin sequence');
-    resetGameState();
-    setIsSpinning(true);
-    setIsInitialLoad(false);
-    
-    console.log('🔊 Playing spin sound effects');
+    // Play spin sound effects
     audioManager.stopAllSoundEffects();
     audioManager.playBackgroundMusic();
     audioManager.playDropSound();
     
+    // Deduct bet amount
     onWinningsUpdate(-(baseBet * betMultiplier));
     
+    // Generate new grid with dropping animations
     const timestamp = Date.now();
-    console.log('🎲 Generating new grid with dropping animations');
     const newGrid = createInitialGrid().map((row, rowIndex) => 
       row.map((cell, colIndex) => ({
         ...cell,
         matched: false,
-        key: `${timestamp}-${rowIndex}-${colIndex}-${Math.random()}`,
+        key: `${timestamp}-${rowIndex}-${colIndex}`,
         isDropping: true,
         dropDelay: (rowIndex * GRID_SIZE + colIndex) * 100
       }))
     );
     
-    console.log('📥 Setting new grid with dropping pieces');
+    console.log('📥 Setting new grid');
     setGrid(newGrid);
     
-    // Calculate total animation time based on grid size and piece delay
-    const totalPieces = GRID_SIZE * GRID_SIZE;
-    const pieceDelay = 100; // milliseconds between each piece
+    // Wait for drop animations to complete
     const dropDuration = 600; // CSS animation duration
-    const totalDelay = (totalPieces * pieceDelay) + dropDuration;
+    const totalDelay = (GRID_SIZE * GRID_SIZE * 100) + dropDuration;
     
-    console.log(`⏳ Waiting ${totalDelay}ms for pieces to drop before checking paylines`);
+    console.log(`⏳ Waiting ${totalDelay}ms for animations`);
     await new Promise(resolve => setTimeout(resolve, totalDelay));
     
-    // Update grid to remove dropping states after animation
-    const updatedGrid = newGrid.map(row => 
+    // Remove dropping states
+    const finalGrid = newGrid.map(row => 
       row.map(cell => ({
         ...cell,
         isDropping: false
       }))
     );
-    setGrid(updatedGrid);
+    setGrid(finalGrid);
     
-    console.log('✅ Drop animation complete, checking paylines');
-    await checkPaylines();
-  };
+    // Check results after animations complete
+    await checkResults();
+  }, [isSpinning, baseBet, betMultiplier, onWinningsUpdate, checkResults]);
 
   return {
     grid,
