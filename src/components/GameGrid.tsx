@@ -21,6 +21,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   const [isSpinning, setIsSpinning] = useState(false);
   const [showLoseDialog, setShowLoseDialog] = useState(false);
   const [showWinDialog, setShowWinDialog] = useState(false);
+  const [isBigWin, setIsBigWin] = useState(false);
   const [isDisplayingWin, setIsDisplayingWin] = useState(false);
   const baseBet = 0.01;
 
@@ -69,6 +70,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   const resetGameState = () => {
     setShowLoseDialog(false);
     setShowWinDialog(false);
+    setIsBigWin(false);
     setIsSpinning(false);
     setIsDisplayingWin(false);
     const newGrid = createInitialGrid();
@@ -116,11 +118,13 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
         totalWinnings += result.winnings;
         onWinningsUpdate(result.winnings);
         
-        if (result.winnings >= baseBet * betMultiplier * 50) {
+        const isBigWinAmount = result.winnings >= baseBet * betMultiplier * 50;
+        if (isBigWinAmount) {
+          setIsBigWin(true);
           setShowWinDialog(true);
           audioManager.stopBackgroundMusic();
           audioManager.playWinSound();
-          triggerWinningEffects(); // Trigger confetti for big wins
+          triggerWinningEffects();
         }
 
         toast({
@@ -141,7 +145,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       setTimeout(resetGameState, 1500);
     } else {
       setIsDisplayingWin(true);
-      triggerWinningEffects(); // Trigger confetti for all wins
+      triggerWinningEffects();
       setTimeout(resetGameState, 2500);
     }
   };
@@ -159,6 +163,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
         <GameDialogs
           showLoseDialog={showLoseDialog}
           showWinDialog={showWinDialog}
+          isBigWin={isBigWin}
           onLoseDialogClose={() => setShowLoseDialog(false)}
           onWinDialogClose={() => setShowWinDialog(false)}
         />

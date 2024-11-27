@@ -9,6 +9,7 @@ interface WinningDialogProps {
   message: string;
   emoji?: React.ReactNode;
   duration?: number;
+  className?: string;
 }
 
 const WinningDialog = ({ 
@@ -16,7 +17,8 @@ const WinningDialog = ({
   onClose, 
   message, 
   emoji = <Clover className="text-green-500 w-16 h-16" />,
-  duration = 5000 
+  duration = 5000,
+  className = ''
 }: WinningDialogProps) => {
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
@@ -39,7 +41,7 @@ const WinningDialog = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="text-center space-y-4 bg-amber-900/40 p-6 rounded-lg"
+          className={`text-center space-y-4 bg-amber-900/40 p-6 rounded-lg ${className}`}
         >
           <motion.div
             className="flex justify-center mb-4"

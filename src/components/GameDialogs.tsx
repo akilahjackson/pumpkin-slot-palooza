@@ -4,6 +4,7 @@ import WinningDialog from "./WinningDialog";
 interface GameDialogsProps {
   showLoseDialog: boolean;
   showWinDialog: boolean;
+  isBigWin: boolean;
   onLoseDialogClose: () => void;
   onWinDialogClose: () => void;
 }
@@ -11,6 +12,7 @@ interface GameDialogsProps {
 const GameDialogs = ({
   showLoseDialog,
   showWinDialog,
+  isBigWin,
   onLoseDialogClose,
   onWinDialogClose
 }: GameDialogsProps) => {
@@ -27,9 +29,10 @@ const GameDialogs = ({
       <WinningDialog
         isOpen={showWinDialog}
         onClose={onWinDialogClose}
-        message="Congratulations! You've hit a winning combination! 🎉"
-        emoji={<Trophy className="text-yellow-500 w-16 h-16" />}
+        message={isBigWin ? "MASSIVE WIN! 50X OR HIGHER! 🎰 🎉" : "Congratulations! You've hit a winning combination! 🎉"}
+        emoji={<Trophy className={`text-yellow-500 w-16 h-16 ${isBigWin ? 'animate-flash' : ''}`} />}
         duration={5000}
+        className={isBigWin ? 'animate-flash' : ''}
       />
     </>
   );
