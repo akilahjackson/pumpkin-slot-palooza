@@ -1,6 +1,5 @@
 import { Cell } from "./gameTypes";
 import { GAME_PIECES } from "./gameConstants";
-import { logPaylineCheck } from "./verificationUtils";
 
 export interface PaylineCheckResult {
   hasMatches: boolean;
@@ -11,13 +10,6 @@ export interface PaylineCheckResult {
   verificationId: string;
 }
 
-interface SequenceInfo {
-  length: number;
-  positions: [number, number][];
-  hasWild: boolean;
-  baseSymbol: number;
-}
-
 export const checkPaylineMatch = (
   payline: [number, number][],
   grid: Cell[][],
@@ -25,69 +17,54 @@ export const checkPaylineMatch = (
 ): PaylineCheckResult => {
   const verificationId = `payline-${paylineIndex}-${Date.now()}`;
   
-  // Convert payline positions to properly typed tuples
-  const validPositions: [number, number][] = payline.map(([row, col]): [number, number] => [row, col]);
-  const symbols: number[] = [];
+  // Get symbols for the payline
+  const symbols = payline.map(([row, col]) => grid[row][col].type);
   
-  // Collect symbols along the payline
-  validPositions.forEach(([row, col]) => {
-    if (grid[row] && grid[row][col]) {
-      symbols.push(grid[row][col].type);
-    }
-  });
-
-  let maxSequence: SequenceInfo = {
-    length: 0,
-    positions: [],
-    hasWild: false,
-    baseSymbol: -1
-  };
-
-  // Find the longest consecutive matching sequence
-  for (let start = 0; start < validPositions.length; start++) {
-    const currentSymbol = symbols[start];
-    if (currentSymbol === GAME_PIECES.WILD) continue;
-
-    let sequence: SequenceInfo = {
-      length: 1,
-      positions: [validPositions[start]],
-      hasWild: false,
-      baseSymbol: currentSymbol
-    };
-
-    for (let next = start + 1; next < validPositions.length; next++) {
-      const nextSymbol = symbols[next];
-      if (nextSymbol === currentSymbol || nextSymbol === GAME_PIECES.WILD) {
-        sequence.length++;
-        sequence.positions.push(validPositions[next]);
-        if (nextSymbol === GAME_PIECES.WILD) {
-          sequence.hasWild = true;
-        }
-      } else {
+  // Count consecutive matches from start
+  let matchCount = 1;
+  let hasWild = symbols[0] === GAME_PIECES.WILD;
+  let baseSymbol = symbols[0];
+  let matchedPositions: [number, number][] = [payline[0]];
+  
+  // If first symbol is wild, find first non-wild symbol
+  if (baseSymbol === GAME_PIECES.WILD) {
+    for (let i = 1; i < symbols.length; i++) {
+      if (symbols[i] !== GAME_PIECES.WILD) {
+        baseSymbol = symbols[i];
         break;
       }
     }
-
-    if (sequence.length >= 3 && sequence.length > maxSequence.length) {
-      maxSequence = sequence;
+  }
+  
+  // Check consecutive matches
+  for (let i = 1; i < symbols.length; i++) {
+    const currentSymbol = symbols[i];
+    
+    if (currentSymbol === baseSymbol || currentSymbol === GAME_PIECES.WILD) {
+      matchCount++;
+      matchedPositions.push(payline[i]);
+      if (currentSymbol === GAME_PIECES.WILD) {
+        hasWild = true;
+      }
+    } else {
+      break;
     }
   }
 
-  logPaylineCheck(
-    paylineIndex,
-    symbols,
-    maxSequence.length,
-    maxSequence.positions,
-    maxSequence.hasWild ? 1 : 0,
-    verificationId
-  );
+  console.log(`Payline ${paylineIndex} check:`, {
+    symbols: symbols.join(','),
+    matchCount,
+    hasWild,
+    baseSymbol,
+    positions: matchedPositions
+  });
 
   return {
-    hasMatches: maxSequence.length >= 3,
-    winnings: maxSequence.length >= 3 ? maxSequence.length * (maxSequence.hasWild ? 2 : 1) : 0,
-    hasWild: maxSequence.hasWild,
-    matchedPositions: maxSequence.positions,
-    symbolCombination: `${maxSequence.length}x ${maxSequence.baseSymbol}${maxSequence.hasWild ? ' with WILD' : ''}`,
+    hasMatches: matchCount >= 3,
+    winnings: matchCount >= 3 ? matchCount * (hasWild ? 2 : 1) : 0,
+    hasWild,
+    matchedPositions,
+    symbolCombination: `${matchCount}x ${baseSymbol}${hasWild ? ' with WILD' : ''}`,
     verificationId
   };
 };

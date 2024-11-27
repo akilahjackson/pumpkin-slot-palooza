@@ -35,12 +35,7 @@ export const checkGameState = (
   const matchedPositions: [number, number][] = [];
   const paylineResults: PaylineCheckResult[] = [];
 
-  // Convert PAYLINES to properly typed tuples
-  const typedPaylines: [number, number][][] = PAYLINES.map(
-    payline => payline.map((pos): [number, number] => [pos[0], pos[1]])
-  );
-
-  typedPaylines.forEach((payline, index) => {
+  PAYLINES.forEach((payline, index) => {
     const result = checkPaylineMatch(payline, newGrid, index);
     paylineResults.push(result);
     
@@ -55,12 +50,10 @@ export const checkGameState = (
       
       onWinningsUpdate(winAmount);
 
-      result.matchedPositions.forEach((position) => {
+      result.matchedPositions.forEach(position => {
         const [row, col] = position;
-        if (newGrid[row] && newGrid[row][col]) {
-          newGrid[row][col].matched = true;
-          matchedPositions.push([row, col]);
-        }
+        newGrid[row][col].matched = true;
+        matchedPositions.push(position);
       });
 
       if (result.winnings > highestMultiplier) {

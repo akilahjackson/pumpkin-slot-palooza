@@ -28,8 +28,8 @@ export const PUMPKIN_TYPES = [
   "🍊"  // ORANGE
 ];
 
-// Define 12 paylines (horizontal, vertical, and diagonal)
-export const PAYLINES = [
+// Define paylines with proper typing
+export const PAYLINES: [number, number][][] = [
   // Horizontal lines
   [[0,0], [0,1], [0,2], [0,3], [0,4], [0,5]],
   [[1,0], [1,1], [1,2], [1,3], [1,4], [1,5]],
