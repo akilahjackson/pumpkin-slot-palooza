@@ -68,27 +68,26 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     setIsSpinning(false);
     setIsDisplayingWin(false);
     setHasWildBonus(false);
-    const newGrid = createInitialGrid();
-    setGrid(newGrid);
   };
 
   const checkPaylines = () => {
     const result = checkGameState(grid, baseBet, betMultiplier, onWinningsUpdate);
+    console.log('Checking paylines for potential wins');
     
-    setGrid(result.updatedGrid);
-    setIsSpinning(false);
-
     if (!result.hasMatches) {
+      console.log('No matches found');
       audioManager.stopBackgroundMusic();
       audioManager.playLoseSound();
       setShowLoseDialog(true);
       setTimeout(resetGameState, 1500);
     } else {
+      console.log('Matches found! Displaying win');
       audioManager.stopBackgroundMusic();
       audioManager.playWinSound();
       setIsDisplayingWin(true);
       setTotalWinnings(result.totalWinnings);
       setHasWildBonus(result.hasWildBonus);
+      setGrid(result.updatedGrid);
       
       if (result.isBigWin) {
         setIsBigWin(true);
@@ -96,7 +95,14 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       }
       
       triggerWinningEffects();
-      setTimeout(resetGameState, 2500);
+      
+      // Display winning paylines for 5 seconds before resetting
+      setTimeout(() => {
+        resetGameState();
+        // Create new grid after displaying wins
+        const newGrid = createInitialGrid();
+        setGrid(newGrid);
+      }, 5000);
     }
   };
 
@@ -122,10 +128,17 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     );
     setGrid(newGrid);
 
-    // Check paylines after animation delay
+    // Wait for all pieces to appear plus extra delay before checking wins
+    const totalPieces = GRID_SIZE * GRID_SIZE;
+    const pieceDelay = 500; // 500ms between each piece
+    const extraDelay = 1000; // Additional 1s delay before checking wins
+    const totalDelay = (totalPieces * pieceDelay) + extraDelay;
+
+    console.log(`Setting timeout for ${totalDelay}ms before checking paylines`);
     setTimeout(() => {
+      setIsSpinning(false);
       checkPaylines();
-    }, (GRID_SIZE * GRID_SIZE * 100) + 500); // Wait for all pieces to appear plus extra delay
+    }, totalDelay);
   };
 
   if (!grid.length) {
