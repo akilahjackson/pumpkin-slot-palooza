@@ -88,6 +88,16 @@ export default {
             transform: "translateY(0)",
             opacity: "1"
           }
+        },
+        flash: {
+          "0%, 100%": { 
+            background: "rgba(255, 215, 0, 0.3)",
+            boxShadow: "0 0 10px rgba(255, 215, 0, 0.5)"
+          },
+          "50%": { 
+            background: "rgba(255, 215, 0, 0.8)",
+            boxShadow: "0 0 20px rgba(255, 215, 0, 0.8)"
+          }
         }
       },
       animation: {
@@ -95,12 +105,8 @@ export default {
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in-down": "fade-in-down 0.3s ease-out",
         "glow": "glow 1s ease-in-out infinite",
-        "drop": "drop 0.5s ease-in-out"
-      },
-      borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        "drop": "drop 0.5s ease-in-out",
+        "flash": "flash 1s ease-in-out infinite"
       },
     },
   },
