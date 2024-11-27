@@ -112,7 +112,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     const newGrid = [...grid];
     let currentTotalWinnings = 0;
     let highestMultiplier = 0;
-    let hasWildBonus = false;
+    let hasWildBonus = false; // Initialize hasWildBonus here
     
     PAYLINES.forEach((payline) => {
       const result = handlePaylineCheck(payline, newGrid, baseBet, betMultiplier);
