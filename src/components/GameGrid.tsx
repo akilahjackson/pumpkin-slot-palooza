@@ -66,7 +66,6 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       
       setTimeout(() => {
         checkPaylines();
-        setIsSpinning(false);
       }, 500);
     }, 1000);
   };
@@ -99,16 +98,20 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       }
     });
 
+    // Update grid with winning paylines first
+    setGrid(newGrid);
+    setIsSpinning(false);
+
     if (!hasMatches) {
       audioManager.stopBackgroundMusic();
       audioManager.playLoseSound();
       setShowLoseDialog(true);
+      // Reset state immediately for lose condition
+      setTimeout(resetGameState, 1500);
+    } else {
+      // For win conditions, give more time to display winning paylines
+      setTimeout(resetGameState, 2500);
     }
-
-    // Reset the grid state after checking paylines
-    setTimeout(() => {
-      resetGameState();
-    }, 1500);
   };
 
   if (!grid.length) {
