@@ -76,18 +76,19 @@ export const useGameState = (
     } else {
       console.log('Matches found! Displaying win');
       
-      // Update matched states in the existing grid
-      const updatedGrid = grid.map((row, i) => 
-        row.map((cell, j) => ({
-          ...cell,
-          matched: result.updatedGrid[i][j].matched,
-          isDropping: false
-        }))
-      );
+      // Update matched states in the existing grid by mutating the current grid
+      // This preserves object references and allows animations to work
+      grid.forEach((row, i) => {
+        row.forEach((cell, j) => {
+          if (result.updatedGrid[i][j].matched) {
+            cell.matched = true;
+          }
+          cell.isDropping = false;
+        });
+      });
       
-      // Set the updated grid to trigger re-render
-      await new Promise(resolve => setTimeout(resolve, 100)); // Small delay to ensure animations
-      setGrid(updatedGrid);
+      // Force a re-render by creating a new array reference but keeping cell references
+      setGrid([...grid]);
       
       audioManager.stopBackgroundMusic();
       audioManager.playWinSound();
@@ -140,7 +141,7 @@ export const useGameState = (
     const pieceDelay = 100;
     const totalDelay = totalPieces * pieceDelay;
     
-    console.log(`Setting timeout for ${totalDelay}ms before checking paylines`);
+    console.log(`Waiting ${totalDelay}ms for pieces to drop before checking paylines`);
     await new Promise(resolve => setTimeout(resolve, totalDelay + 500));
     await checkPaylines();
   };
