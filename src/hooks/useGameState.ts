@@ -22,6 +22,7 @@ export const useGameState = (
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const triggerWinningEffects = () => {
+    console.log('🎉 Triggering winning effects animation');
     const duration = 2000;
     const end = Date.now() + duration;
 
@@ -50,7 +51,7 @@ export const useGameState = (
   };
 
   const resetGameState = () => {
-    console.log('Resetting game state');
+    console.log('🔄 Resetting game state');
     setShowLoseDialog(false);
     setShowWinDialog(false);
     setIsBigWin(false);
@@ -58,49 +59,52 @@ export const useGameState = (
   };
 
   const checkPaylines = async () => {
-    console.log('Checking paylines');
+    console.log('🔍 Starting payline check');
     if (!grid || grid.length === 0) {
-      console.error('Cannot check paylines: grid is empty');
+      console.error('❌ Cannot check paylines: grid is empty');
       setIsSpinning(false);
       return;
     }
 
+    console.log('📊 Current grid state before check:', grid);
     const result = checkGameState(grid, baseBet, betMultiplier, onWinningsUpdate);
-    console.log('Game state check result:', result);
+    console.log('✨ Game state check result:', result);
     
     if (!result.hasMatches) {
-      console.log('No matches found');
+      console.log('😢 No matches found');
       audioManager.stopBackgroundMusic();
       audioManager.playLoseSound();
       setShowLoseDialog(true);
     } else {
-      console.log('Matches found! Displaying win');
+      console.log('🎯 Matches found! Starting win sequence');
       
-      // Update matched states in place to preserve animations
+      console.log('🎲 Updating matched states in grid');
       result.updatedGrid.forEach((row, i) => {
         row.forEach((cell, j) => {
           if (cell.matched) {
-            // Directly modify the existing grid cell
+            console.log(`🎯 Marking cell at [${i},${j}] as matched`);
             grid[i][j].matched = true;
           }
           grid[i][j].isDropping = false;
         });
       });
       
-      // Force a re-render by creating a new array reference
-      // but keep the same cell objects
+      console.log('🔄 Forcing grid re-render while preserving cell references');
       setGrid([...grid]);
       
+      console.log('🎵 Playing win sound effects');
       audioManager.stopBackgroundMusic();
       audioManager.playWinSound();
       setTotalWinnings(result.totalWinnings);
       setHasWildBonus(result.hasWildBonus);
       
       if (result.isBigWin) {
+        console.log('🌟 Big win detected! Triggering special effects');
         setIsBigWin(true);
         setShowWinDialog(true);
       }
       
+      console.log('🎊 Triggering winning animations');
       triggerWinningEffects();
     }
     
@@ -109,15 +113,16 @@ export const useGameState = (
 
   const spin = async () => {
     if (isSpinning) {
-      console.log('Spin blocked - already spinning');
+      console.log('⚠️ Spin blocked - already spinning');
       return;
     }
     
-    console.log('Starting new spin');
+    console.log('🎰 Starting new spin sequence');
     resetGameState();
     setIsSpinning(true);
     setIsInitialLoad(false);
     
+    console.log('🔊 Playing spin sound effects');
     audioManager.stopAllSoundEffects();
     audioManager.playBackgroundMusic();
     audioManager.playDropSound();
@@ -125,6 +130,7 @@ export const useGameState = (
     onWinningsUpdate(-(baseBet * betMultiplier));
     
     const timestamp = Date.now();
+    console.log('🎲 Generating new grid with dropping animations');
     const newGrid = createInitialGrid().map((row, rowIndex) => 
       row.map((cell, colIndex) => ({
         ...cell,
@@ -135,15 +141,16 @@ export const useGameState = (
       }))
     );
     
-    console.log('Generated new grid:', newGrid);
+    console.log('📥 Setting new grid with dropping pieces');
     setGrid(newGrid);
     
     const totalPieces = GRID_SIZE * GRID_SIZE;
     const pieceDelay = 100;
     const totalDelay = totalPieces * pieceDelay;
     
-    console.log(`Waiting ${totalDelay}ms for pieces to drop before checking paylines`);
+    console.log(`⏳ Waiting ${totalDelay}ms for pieces to drop before checking paylines`);
     await new Promise(resolve => setTimeout(resolve, totalDelay + 500));
+    console.log('✅ Drop animation complete, checking paylines');
     await checkPaylines();
   };
 
