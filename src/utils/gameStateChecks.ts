@@ -72,7 +72,10 @@ export const checkGameState = (
 
   // Convert Set back to array of positions
   const uniqueMatchedPositions: [number, number][] = Array.from(allMatchedPositions)
-    .map(pos => pos.split(',').map(Number) as [number, number]);
+    .map(pos => {
+      const [row, col] = pos.split(',').map(Number);
+      return [row, col] as [number, number];
+    });
 
   const snapshot = createGameStateSnapshot(grid, uniqueMatchedPositions);
   
