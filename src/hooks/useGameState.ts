@@ -76,16 +76,16 @@ export const useGameState = (
     } else {
       console.log('Matches found! Displaying win');
       
-      // Update matched states without recreating the grid
-      setGrid(prevGrid => 
-        prevGrid.map((row, i) => 
-          row.map((cell, j) => ({
-            ...cell,
-            matched: result.updatedGrid[i][j].matched,
-            isDropping: false // Ensure no dropping animation during win display
-          }))
-        )
-      );
+      // Update matched states in place without recreating grid
+      grid.forEach((row, i) => {
+        row.forEach((cell, j) => {
+          cell.matched = result.updatedGrid[i][j].matched;
+          cell.isDropping = false;
+        });
+      });
+      
+      // Force a re-render while preserving the grid reference
+      setGrid([...grid]);
       
       audioManager.stopBackgroundMusic();
       audioManager.playWinSound();
