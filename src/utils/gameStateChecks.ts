@@ -32,33 +32,35 @@ const checkPaylineMatch = (
   // Check for at least 3 matching symbols
   for (let i = 0; i < symbols.length - 2; i++) {
     const currentSymbol = symbols[i];
-    const nextSymbol = symbols[i + 1];
-    const thirdSymbol = symbols[i + 2];
-
-    // Skip if current symbol is WILD
+    
+    // Skip if current symbol is WILD - we want actual symbols as the base
     if (currentSymbol === GAME_PIECES.WILD) continue;
 
-    const isMatch = (symbol: number) => 
-      symbol === currentSymbol || symbol === GAME_PIECES.WILD;
+    let consecutiveMatches = 1;
+    let currentMatches: [number, number][] = [[payline[i][0], payline[i][1]]];
+    let wildCount = 0;
 
-    if (isMatch(nextSymbol) && isMatch(thirdSymbol)) {
-      matchCount = 3;
-      hasWild = [nextSymbol, thirdSymbol].includes(GAME_PIECES.WILD);
-      // Ensure positions are properly typed as tuples
-      matchedPositions = payline.slice(i, i + 3).map(pos => [pos[0], pos[1]] as [number, number]);
-
-      // Check for additional matches
-      for (let j = i + 3; j < symbols.length; j++) {
-        if (isMatch(symbols[j])) {
-          matchCount++;
-          matchedPositions.push([payline[j][0], payline[j][1]] as [number, number]);
-        } else {
-          break;
+    // Check subsequent positions
+    for (let j = i + 1; j < symbols.length; j++) {
+      const nextSymbol = symbols[j];
+      if (nextSymbol === currentSymbol || nextSymbol === GAME_PIECES.WILD) {
+        consecutiveMatches++;
+        currentMatches.push([payline[j][0], payline[j][1]]);
+        if (nextSymbol === GAME_PIECES.WILD) {
+          wildCount++;
         }
+      } else {
+        break;
       }
+    }
 
-      // Calculate winnings based on match count
+    // If we found at least 3 matches
+    if (consecutiveMatches >= 3) {
+      matchCount = consecutiveMatches;
+      hasWild = wildCount > 0;
+      matchedPositions = currentMatches;
       winnings = matchCount * (hasWild ? WILD_MULTIPLIER : 1);
+      console.log(`Found ${matchCount} matches with ${wildCount} wilds for symbol ${currentSymbol}`);
       break;
     }
   }
@@ -113,14 +115,12 @@ export const checkGameState = (
       currentTotalWinnings += winAmount;
       onWinningsUpdate(winAmount);
       
-      if (result.matchedPositions) {
-        result.matchedPositions.forEach(([row, col]) => {
-          if (newGrid[row] && newGrid[row][col]) {
-            newGrid[row][col].matched = true;
-            allMatchedPositions.push([row, col]);
-          }
-        });
-      }
+      result.matchedPositions.forEach(([row, col]) => {
+        if (newGrid[row] && newGrid[row][col]) {
+          newGrid[row][col].matched = true;
+          allMatchedPositions.push([row, col]);
+        }
+      });
 
       const multiplier = result.winnings;
       console.log('Win multiplier:', multiplier);
