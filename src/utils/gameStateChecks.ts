@@ -1,6 +1,12 @@
 import { Cell } from "./gameTypes";
 import { PAYLINES, GAME_PIECES, WILD_MULTIPLIER } from "./gameConstants";
-import { handlePaylineCheck } from "./paylineUtils";
+
+interface PaylineCheckResult {
+  hasMatches: boolean;
+  winnings: number;
+  hasWild: boolean;
+  matchedPositions: [number, number][];
+}
 
 interface GameCheckResult {
   hasMatches: boolean;
@@ -11,6 +17,57 @@ interface GameCheckResult {
   updatedGrid: Cell[][];
   matchedPositions: [number, number][];
 }
+
+const checkPaylineMatch = (
+  payline: [number, number][],
+  grid: Cell[][]
+): PaylineCheckResult => {
+  const symbols: number[] = payline.map(([row, col]) => grid[row][col].type);
+  let matchCount = 0;
+  let hasWild = false;
+  let matchedPositions: [number, number][] = [];
+  let winnings = 0;
+
+  // Check for at least 3 matching symbols
+  for (let i = 0; i < symbols.length - 2; i++) {
+    const currentSymbol = symbols[i];
+    const nextSymbol = symbols[i + 1];
+    const thirdSymbol = symbols[i + 2];
+
+    // Skip if current symbol is WILD
+    if (currentSymbol === GAME_PIECES.WILD) continue;
+
+    const isMatch = (symbol: number) => 
+      symbol === currentSymbol || symbol === GAME_PIECES.WILD;
+
+    if (isMatch(nextSymbol) && isMatch(thirdSymbol)) {
+      matchCount = 3;
+      hasWild = [nextSymbol, thirdSymbol].includes(GAME_PIECES.WILD);
+      matchedPositions = payline.slice(i, i + 3) as [number, number][];
+
+      // Check for additional matches
+      for (let j = i + 3; j < symbols.length; j++) {
+        if (isMatch(symbols[j])) {
+          matchCount++;
+          matchedPositions.push(payline[j] as [number, number]);
+        } else {
+          break;
+        }
+      }
+
+      // Calculate winnings based on match count
+      winnings = matchCount * (hasWild ? WILD_MULTIPLIER : 1);
+      break;
+    }
+  }
+
+  return {
+    hasMatches: matchCount >= 3,
+    winnings,
+    hasWild,
+    matchedPositions
+  };
+};
 
 export const checkGameState = (
   grid: Cell[][],
@@ -42,29 +99,25 @@ export const checkGameState = (
 
   PAYLINES.forEach((payline, index) => {
     console.log(`Checking payline ${index}:`, payline);
-    const result = handlePaylineCheck(payline, newGrid, baseBet, betMultiplier);
+    const result = checkPaylineMatch(payline, newGrid);
     console.log(`Payline ${index} result:`, result);
 
     if (result.hasMatches) {
       hasMatches = true;
-      currentTotalWinnings += result.winnings;
-      onWinningsUpdate(result.winnings);
+      const winAmount = result.winnings * baseBet * betMultiplier;
+      currentTotalWinnings += winAmount;
+      onWinningsUpdate(winAmount);
       
       if (result.matchedPositions) {
-        // Ensure positions are properly typed as tuples
-        const typedPositions: [number, number][] = result.matchedPositions.map(
-          pos => [pos[0], pos[1]] as [number, number]
-        );
-        allMatchedPositions.push(...typedPositions);
-        
-        typedPositions.forEach(([row, col]) => {
+        result.matchedPositions.forEach(([row, col]) => {
           if (newGrid[row] && newGrid[row][col]) {
             newGrid[row][col].matched = true;
+            allMatchedPositions.push([row, col]);
           }
         });
       }
 
-      const multiplier = result.winnings / baseBet;
+      const multiplier = result.winnings;
       console.log('Win multiplier:', multiplier);
 
       if (multiplier > highestMultiplier) {
