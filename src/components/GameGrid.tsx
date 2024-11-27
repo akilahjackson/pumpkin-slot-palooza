@@ -110,7 +110,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     
     let hasMatches = false;
     const newGrid = [...grid];
-    let currentTotalWinnings = 0; // Rename to avoid shadowing
+    let currentTotalWinnings = 0;
     let highestMultiplier = 0;
     
     PAYLINES.forEach((payline) => {
@@ -150,7 +150,14 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       audioManager.stopBackgroundMusic();
       audioManager.playWinSound();
       setIsDisplayingWin(true);
-      setTotalWinnings(currentTotalWinnings); // Update totalWinnings state
+      setTotalWinnings(currentTotalWinnings);
+      
+      // Show toast notification for any win
+      toast({
+        title: "Winner! 🎉",
+        description: `You won ${currentTotalWinnings.toFixed(3)} SOL!`,
+        duration: 3000,
+      });
       
       // Only show win dialog for big wins (50x or higher)
       if (highestMultiplier >= 50) {
