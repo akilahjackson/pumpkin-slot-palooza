@@ -55,14 +55,16 @@ export const useGameState = (
     console.log('💰 Win amount:', result.totalWinnings);
     console.log('🎲 Matched positions:', result.matchedPositions);
     
-    setGrid(prevGrid => 
-      prevGrid.map((row, i) => 
+    setGrid(prevGrid => {
+      const updatedGrid = prevGrid.map((row, i) => 
         row.map((cell, j) => ({
           ...cell,
           matched: result.updatedGrid[i][j].matched
         }))
-      )
-    );
+      );
+      console.log('Updated grid with matches:', updatedGrid);
+      return updatedGrid;
+    });
     
     audioManager.stopBackgroundMusic();
     audioManager.playWinSound();
@@ -74,6 +76,17 @@ export const useGameState = (
       console.log('🌟 Big win detected!');
       setIsBigWin(true);
       setShowWinDialog(true);
+      toast({
+        title: "Big Win! 🎰",
+        description: `You won ${result.totalWinnings.toFixed(3)} SOL!`,
+        duration: 5000,
+      });
+    } else {
+      toast({
+        title: "Winner! 🎉",
+        description: `You won ${result.totalWinnings.toFixed(3)} SOL!`,
+        duration: 3000,
+      });
     }
     
     triggerWinningEffects();
@@ -84,6 +97,11 @@ export const useGameState = (
     audioManager.stopBackgroundMusic();
     audioManager.playLoseSound();
     setShowLoseDialog(true);
+    toast({
+      title: "No matches this time 😔",
+      description: "Try again!",
+      duration: 3000,
+    });
   }, []);
 
   const checkResults = useCallback(() => {
