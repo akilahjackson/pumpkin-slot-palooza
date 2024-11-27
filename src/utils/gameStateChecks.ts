@@ -73,28 +73,28 @@ export const checkGameState = (
   });
 
   // Convert positions with validation and ensure type safety
-  const positions = Array.from(matchedPositionsSet)
+  const validPositions = Array.from(matchedPositionsSet)
     .map(pos => pos.split(',').map(Number))
     .filter(isValidPositionTuple);
 
-  const snapshot = createGameStateSnapshot(grid, positions);
+  const snapshot = createGameStateSnapshot(grid, validPositions);
   
   console.log('\n📊 Game Check Summary:', {
     totalWin: totalWinnings,
-    matchCount: positions.length,
+    matchCount: validPositions.length,
     highestMultiplier,
     hasWildBonus,
     verificationId: snapshot.verificationId
   });
 
   return {
-    hasMatches: positions.length > 0,
+    hasMatches: validPositions.length > 0,
     totalWinnings,
     isBigWin: highestMultiplier >= 50,
     hasWildBonus,
     highestMultiplier,
     updatedGrid: newGrid,
-    matchedPositions: positions,
+    matchedPositions: validPositions,
     verificationDetails: {
       id: snapshot.verificationId,
       timestamp: snapshot.timestamp,
