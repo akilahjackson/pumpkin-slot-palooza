@@ -1,20 +1,32 @@
 export const GRID_SIZE = 6;
 
 export const GAME_PIECES = {
-  WILD: "🌟",
-  PUMPKIN: "🎃",
-  WHEAT: "🌾",
-  APPLE: "🍎",
-  CORN: "🌽",
-  GRAPES: "🍇",
-  MAPLE: "🍁",
-  COINS: "💰",
-  CHERRY: "🍒",
-  BANANA: "🍌",
-  ORANGE: "🍊"
+  WILD: 0,
+  PUMPKIN: 1,
+  WHEAT: 2,
+  APPLE: 3,
+  CORN: 4,
+  GRAPES: 5,
+  MAPLE: 6,
+  COINS: 7,
+  CHERRY: 8,
+  BANANA: 9,
+  ORANGE: 10
 } as const;
 
-export const PUMPKIN_TYPES = Object.values(GAME_PIECES);
+export const PUMPKIN_TYPES = [
+  "🌟", // WILD
+  "🎃", // PUMPKIN
+  "🌾", // WHEAT
+  "🍎", // APPLE
+  "🌽", // CORN
+  "🍇", // GRAPES
+  "🍁", // MAPLE
+  "💰", // COINS
+  "🍒", // CHERRY
+  "🍌", // BANANA
+  "🍊"  // ORANGE
+];
 
 // Define 12 paylines (horizontal, vertical, and diagonal)
 export const PAYLINES = [
