@@ -41,7 +41,8 @@ export const checkGameState = (
     });
   });
 
-  PAYLINES.forEach((payline) => {
+  // Ensure each payline is properly typed as a tuple array
+  PAYLINES.forEach((payline: [number, number][]) => {
     const result = handlePaylineCheck(payline, newGrid, baseBet, betMultiplier);
     console.log('Payline check result:', result);
 
