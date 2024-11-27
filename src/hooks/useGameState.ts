@@ -17,7 +17,6 @@ export const useGameState = (
   const [showLoseDialog, setShowLoseDialog] = useState(false);
   const [showWinDialog, setShowWinDialog] = useState(false);
   const [isBigWin, setIsBigWin] = useState(false);
-  const [isDisplayingWin, setIsDisplayingWin] = useState(false);
   const [totalWinnings, setTotalWinnings] = useState(0);
   const [hasWildBonus, setHasWildBonus] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -55,12 +54,10 @@ export const useGameState = (
     setShowLoseDialog(false);
     setShowWinDialog(false);
     setIsBigWin(false);
-    setIsDisplayingWin(false);
     setHasWildBonus(false);
-    setIsSpinning(false);
   };
 
-  const checkPaylines = () => {
+  const checkPaylines = async () => {
     console.log('Checking paylines');
     if (!grid || grid.length === 0) {
       console.error('Cannot check paylines: grid is empty');
@@ -87,12 +84,10 @@ export const useGameState = (
       audioManager.stopBackgroundMusic();
       audioManager.playLoseSound();
       setShowLoseDialog(true);
-      setIsSpinning(false);
     } else {
       console.log('Matches found! Displaying win');
       audioManager.stopBackgroundMusic();
       audioManager.playWinSound();
-      setIsDisplayingWin(true);
       setTotalWinnings(result.totalWinnings);
       setHasWildBonus(result.hasWildBonus);
       
@@ -102,8 +97,9 @@ export const useGameState = (
       }
       
       triggerWinningEffects();
-      setIsSpinning(false);
     }
+    
+    setIsSpinning(false);
   };
 
   const spin = async () => {
@@ -137,12 +133,16 @@ export const useGameState = (
     console.log('Generated new grid:', newGrid);
     setGrid(newGrid);
     
+    // Calculate total animation time
     const totalPieces = GRID_SIZE * GRID_SIZE;
     const pieceDelay = 100;
     const totalDelay = totalPieces * pieceDelay;
     
     console.log(`Setting timeout for ${totalDelay}ms before checking paylines`);
-    setTimeout(checkPaylines, totalDelay + 500);
+    // Use setTimeout to ensure animations complete before checking paylines
+    setTimeout(() => {
+      checkPaylines();
+    }, totalDelay + 500);
   };
 
   return {
