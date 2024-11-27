@@ -53,15 +53,16 @@ export const useGameState = (
   const handleWinningSequence = useCallback((result: any) => {
     console.log('🎯 Starting winning sequence');
     console.log('💰 Win amount:', result.totalWinnings);
+    console.log('🎲 Matched positions:', result.matchedPositions);
     
-    setGrid(prevGrid => {
-      return prevGrid.map((row, i) => 
+    setGrid(prevGrid => 
+      prevGrid.map((row, i) => 
         row.map((cell, j) => ({
           ...cell,
           matched: result.updatedGrid[i][j].matched
         }))
-      );
-    });
+      )
+    );
     
     audioManager.stopBackgroundMusic();
     audioManager.playWinSound();
@@ -86,14 +87,22 @@ export const useGameState = (
   }, []);
 
   const checkResults = useCallback(() => {
-    if (!grid.length) return;
+    if (!grid || grid.length === 0) {
+      console.log('⚠️ Grid is empty during result check');
+      return;
+    }
     
     console.log('🔍 Checking game results');
+    console.log('Current grid state:', grid);
+    
     const result = checkGameState(grid, baseBet, betMultiplier, onWinningsUpdate);
+    console.log('Game state check result:', result);
     
     if (result.hasMatches) {
+      console.log('✨ Matches found:', result.matchedPositions);
       handleWinningSequence(result);
     } else {
+      console.log('❌ No matches found');
       handleLoseSequence();
     }
     
@@ -101,7 +110,10 @@ export const useGameState = (
   }, [grid, baseBet, betMultiplier, onWinningsUpdate, handleWinningSequence, handleLoseSequence]);
 
   const spin = useCallback(async () => {
-    if (isSpinning) return;
+    if (isSpinning) {
+      console.log('🚫 Spin already in progress');
+      return;
+    }
     
     console.log('🎰 Starting new spin');
     setIsSpinning(true);
@@ -119,18 +131,20 @@ export const useGameState = (
     onWinningsUpdate(-(baseBet * betMultiplier));
     
     const timestamp = Date.now();
-    const newGrid = createInitialGrid().map((row, rowIndex) => 
+    const newGrid = createInitialGrid();
+    console.log('New grid generated:', newGrid);
+    
+    const gridWithAnimations = newGrid.map((row, rowIndex) => 
       row.map((cell, colIndex) => ({
         ...cell,
-        matched: false,
         key: `${timestamp}-${rowIndex}-${colIndex}`,
         isDropping: true,
         dropDelay: (rowIndex * GRID_SIZE + colIndex) * 100
       }))
     );
     
-    console.log('📥 Setting new grid');
-    setGrid(newGrid);
+    console.log('📥 Setting new grid with animations');
+    setGrid(gridWithAnimations);
     
     const dropDuration = 600;
     const totalDelay = (GRID_SIZE * GRID_SIZE * 100) + dropDuration;
