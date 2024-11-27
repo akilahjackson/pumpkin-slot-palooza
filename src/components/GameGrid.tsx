@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { GRID_SIZE, PUMPKIN_TYPES, PAYLINES } from "../utils/gameConstants";
+import { GRID_SIZE, PUMPKIN_TYPES, PAYLINES, GAME_PIECES, WILD_MULTIPLIER } from "../utils/gameConstants";
 import { Cell, Position } from "../utils/gameTypes";
 import { createInitialGrid, isValidPosition, isAdjacent } from "../utils/gameLogic";
 import { toast } from "@/components/ui/use-toast";
 import { Card } from "@/components/ui/card";
+import GamePiece from "./GamePiece";
 
 const harvestMessages = [
   "A bountiful harvest! 🌾",
@@ -11,6 +12,9 @@ const harvestMessages = [
   "Nature's abundance flows! 🍂",
   "A golden harvest awaits! ✨",
   "Prosperity blooms! 🌺",
+  "The harvest multiplies! 💫",
+  "Fortune favors your fields! 🌅",
+  "A magical harvest appears! ⭐",
 ];
 
 const getRandomMessage = () => {
@@ -40,8 +44,9 @@ const GameGrid = () => {
     }, 500);
   };
 
-  const calculatePayout = (matchCount: number): number => {
-    return 0.01 * matchCount;
+  const calculatePayout = (matchCount: number, hasWild: boolean): number => {
+    const basePayout = 0.01 * matchCount;
+    return hasWild ? basePayout * WILD_MULTIPLIER : basePayout;
   };
 
   const checkAllPaylines = async () => {
@@ -62,17 +67,22 @@ const GameGrid = () => {
       const symbols = validPositions.map(([row, col]) => newGrid[row][col].type);
       
       for (let i = 0; i < symbols.length - 2; i++) {
-        if (symbols[i] === symbols[i + 1] && symbols[i] === symbols[i + 2]) {
-          let matchCount = 3;
-          for (let j = i + 3; j < symbols.length; j++) {
-            if (symbols[j] === symbols[i]) {
-              matchCount++;
-            } else {
-              break;
-            }
-          }
+        const hasWild = symbols.slice(i, i + 3).includes(GAME_PIECES.WILD);
+        const symbolToMatch = symbols[i] === GAME_PIECES.WILD ? symbols[i + 1] : symbols[i];
+        
+        if (symbolToMatch === GAME_PIECES.WILD) continue;
 
-          const payout = calculatePayout(matchCount);
+        let matchCount = 0;
+        let j = i;
+
+        while (j < symbols.length && 
+              (symbols[j] === symbolToMatch || symbols[j] === GAME_PIECES.WILD)) {
+          matchCount++;
+          j++;
+        }
+
+        if (matchCount >= 3) {
+          const payout = calculatePayout(matchCount, hasWild);
           currentWinnings += payout;
 
           validPositions.slice(i, i + matchCount).forEach(([row, col]) => {
@@ -80,9 +90,10 @@ const GameGrid = () => {
             hasMatches = true;
           });
 
+          const wildBonus = hasWild ? " (Wild Bonus! x2)" : "";
           toast({
             title: getRandomMessage(),
-            description: `Payline ${paylineIndex + 1}: ${matchCount} matches for ${payout.toFixed(3)} SOL`,
+            description: `Payline ${paylineIndex + 1}: ${matchCount} matches for ${payout.toFixed(3)} SOL${wildBonus}`,
             className: "bg-gradient-to-r from-amber-200 to-yellow-400 text-amber-900 border-amber-300",
           });
         }
@@ -208,17 +219,15 @@ const GameGrid = () => {
             row.map((cell, j) => (
               <div
                 key={cell.key}
-                className={`cell
-                  ${cell.matched ? "animate-pulse bg-amber-400/20" : ""} 
-                  ${cell.isDropping ? "animate-fade-in-down" : ""}
-                  ${selectedCell?.row === i && selectedCell?.col === j ? "ring-2 ring-amber-400" : ""}
-                  cursor-pointer hover:bg-amber-400/10 transition-all duration-300
-                  rounded-lg backdrop-blur-sm`}
+                className="cell cursor-pointer"
                 onClick={() => handleCellClick(i, j)}
               >
-                <span className="text-3xl transform transition-transform hover:scale-110">
-                  {PUMPKIN_TYPES[cell.type]}
-                </span>
+                <GamePiece
+                  type={PUMPKIN_TYPES[cell.type]}
+                  isMatched={cell.matched}
+                  isSelected={selectedCell?.row === i && selectedCell?.col === j}
+                  isDropping={cell.isDropping}
+                />
               </div>
             ))
           )}
