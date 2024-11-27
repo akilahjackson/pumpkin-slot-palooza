@@ -6,6 +6,8 @@ interface PaylineCheckResult {
   winnings: number;
   hasWild: boolean;
   matchedPositions: [number, number][];
+  matchedSymbols: number[];
+  verificationId: string;
 }
 
 interface GameCheckResult {
@@ -16,36 +18,66 @@ interface GameCheckResult {
   highestMultiplier: number;
   updatedGrid: Cell[][];
   matchedPositions: [number, number][];
+  verificationDetails: {
+    timestamp: string;
+    paylineResults: PaylineCheckResult[];
+    totalPayout: number;
+    gridSnapshot: string;
+  };
 }
+
+const generateVerificationId = () => {
+  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+};
+
+const logPaylineCheck = (
+  paylineIndex: number,
+  symbols: number[],
+  matches: number,
+  positions: [number, number][],
+  wildCount: number
+) => {
+  console.log(`🎰 Checking Payline #${paylineIndex}:`);
+  console.log(`📊 Symbols in payline:`, symbols.map(s => GAME_PIECES[s]).join(' → '));
+  console.log(`✨ Consecutive matches: ${matches}`);
+  console.log(`🌟 Wild symbols used: ${wildCount}`);
+  console.log(`📍 Matched positions:`, positions);
+};
 
 const checkPaylineMatch = (
   payline: [number, number][],
-  grid: Cell[][]
+  grid: Cell[][],
+  paylineIndex: number
 ): PaylineCheckResult => {
-  console.log('Checking payline:', payline);
+  console.log(`\n🔍 Starting payline ${paylineIndex} check`);
+  
   const symbols: number[] = payline.map(([row, col]) => grid[row][col].type);
   let matchCount = 0;
   let hasWild = false;
   let matchedPositions: [number, number][] = [];
+  let matchedSymbols: number[] = [];
   let winnings = 0;
+  let wildCount = 0;
 
-  // Check for at least 3 matching symbols
   for (let i = 0; i < symbols.length - 2; i++) {
     const currentSymbol = symbols[i];
     
-    // Skip if current symbol is WILD - we want actual symbols as the base
-    if (currentSymbol === GAME_PIECES.WILD) continue;
+    if (currentSymbol === GAME_PIECES.WILD) {
+      console.log(`⚠️ Skipping WILD as base symbol at position ${i}`);
+      continue;
+    }
 
     let consecutiveMatches = 1;
     let currentMatches: [number, number][] = [[payline[i][0], payline[i][1]]];
-    let wildCount = 0;
+    let currentMatchedSymbols: number[] = [currentSymbol];
+    wildCount = 0;
 
-    // Check subsequent positions
     for (let j = i + 1; j < symbols.length; j++) {
       const nextSymbol = symbols[j];
       if (nextSymbol === currentSymbol || nextSymbol === GAME_PIECES.WILD) {
         consecutiveMatches++;
         currentMatches.push([payline[j][0], payline[j][1]]);
+        currentMatchedSymbols.push(nextSymbol);
         if (nextSymbol === GAME_PIECES.WILD) {
           wildCount++;
         }
@@ -54,24 +86,29 @@ const checkPaylineMatch = (
       }
     }
 
-    // If we found at least 3 matches
     if (consecutiveMatches >= 3) {
       matchCount = consecutiveMatches;
       hasWild = wildCount > 0;
       matchedPositions = currentMatches;
+      matchedSymbols = currentMatchedSymbols;
       winnings = matchCount * (hasWild ? WILD_MULTIPLIER : 1);
-      console.log(`Found ${matchCount} matches with ${wildCount} wilds for symbol ${currentSymbol}`);
+      
+      logPaylineCheck(paylineIndex, matchedSymbols, matchCount, matchedPositions, wildCount);
       break;
     }
   }
 
-  console.log('Match result:', { matchCount, hasWild, matchedPositions, winnings });
-  return {
+  const result: PaylineCheckResult = {
     hasMatches: matchCount >= 3,
     winnings,
     hasWild,
-    matchedPositions
+    matchedPositions,
+    matchedSymbols,
+    verificationId: generateVerificationId()
   };
+
+  console.log(`✅ Payline ${paylineIndex} result:`, result);
+  return result;
 };
 
 export const checkGameState = (
@@ -80,34 +117,21 @@ export const checkGameState = (
   betMultiplier: number,
   onWinningsUpdate: (winnings: number) => void
 ): GameCheckResult => {
-  console.log('Starting game state check with grid:', grid);
+  console.log('\n🎮 Starting new game state check');
+  console.log('💰 Base bet:', baseBet, 'Multiplier:', betMultiplier);
   
-  if (!grid || !grid.length) {
-    console.warn('Invalid grid state during check');
-    return {
-      hasMatches: false,
-      totalWinnings: 0,
-      isBigWin: false,
-      hasWildBonus: false,
-      highestMultiplier: 0,
-      updatedGrid: grid,
-      matchedPositions: []
-    };
-  }
-
   const newGrid = grid.map(row => row.map(cell => ({...cell, matched: false})));
   let currentTotalWinnings = 0;
   let highestMultiplier = 0;
   let hasWildBonus = false;
   let hasMatches = false;
   const allMatchedPositions: [number, number][] = [];
+  const paylineResults: PaylineCheckResult[] = [];
 
   PAYLINES.forEach((payline, index) => {
-    console.log(`Checking payline ${index}:`, payline);
-    // Ensure payline is properly typed before passing to checkPaylineMatch
     const typedPayline = payline.map(pos => [pos[0], pos[1]] as [number, number]);
-    const result = checkPaylineMatch(typedPayline, newGrid);
-    console.log(`Payline ${index} result:`, result);
+    const result = checkPaylineMatch(typedPayline, newGrid, index);
+    paylineResults.push(result);
 
     if (result.hasMatches) {
       hasMatches = true;
@@ -122,11 +146,8 @@ export const checkGameState = (
         }
       });
 
-      const multiplier = result.winnings;
-      console.log('Win multiplier:', multiplier);
-
-      if (multiplier > highestMultiplier) {
-        highestMultiplier = multiplier;
+      if (result.winnings > highestMultiplier) {
+        highestMultiplier = result.winnings;
       }
 
       if (result.hasWild) {
@@ -135,12 +156,18 @@ export const checkGameState = (
     }
   });
 
-  if (hasMatches) {
-    console.log('Matches found! Total winnings:', currentTotalWinnings);
-    console.log('Matched positions:', allMatchedPositions);
-  } else {
-    console.log('No matches found in any payline');
-  }
+  const verificationDetails = {
+    timestamp: new Date().toISOString(),
+    paylineResults,
+    totalPayout: currentTotalWinnings,
+    gridSnapshot: JSON.stringify(grid)
+  };
+
+  console.log('\n📊 Game Check Summary:');
+  console.log('💰 Total Winnings:', currentTotalWinnings);
+  console.log('🎯 Total Matched Positions:', allMatchedPositions.length);
+  console.log('🌟 Highest Multiplier:', highestMultiplier);
+  console.log('🎲 Wild Bonus Applied:', hasWildBonus);
 
   return {
     hasMatches,
@@ -149,6 +176,7 @@ export const checkGameState = (
     hasWildBonus,
     highestMultiplier,
     updatedGrid: newGrid,
-    matchedPositions: allMatchedPositions
+    matchedPositions: allMatchedPositions,
+    verificationDetails
   };
 };
