@@ -70,20 +70,23 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     
     let hasMatches = false;
     const newGrid = [...grid];
-    let currentWinnings = 0;
+    let totalWinnings = 0;
     
     PAYLINES.forEach((payline) => {
       const result = handlePaylineCheck(payline, newGrid, baseBet, betMultiplier);
       if (result.hasMatches) {
         hasMatches = true;
-        currentWinnings += result.winnings;
+        totalWinnings += result.winnings;
         onWinningsUpdate(result.winnings);
         
         if (!hasWinningCombination) {
           setHasWinningCombination(true);
-          setShowWinDialog(true);
-          audioManager.stopBackgroundMusic();
-          audioManager.playWinSound();
+          // Only show win dialog for big wins (50x bet or more)
+          if (result.winnings >= baseBet * betMultiplier * 50) {
+            setShowWinDialog(true);
+            audioManager.stopBackgroundMusic();
+            audioManager.playWinSound();
+          }
         }
 
         toast({
