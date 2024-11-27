@@ -1,26 +1,31 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { GRID_SIZE, PUMPKIN_TYPES, PAYLINES, GAME_PIECES, WILD_MULTIPLIER } from "../utils/gameConstants";
-import { Cell, Position } from "../utils/gameTypes";
+import { Cell } from "../utils/gameTypes";
 import { createInitialGrid, isValidPosition } from "../utils/gameLogic";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import GamePiece from "./GamePiece";
+import WinningDialog from "./WinningDialog";
 
 interface GameGridProps {
   betMultiplier: number;
   onWinningsUpdate: (winnings: number) => void;
 }
 
+const WINNING_MESSAGES = [
+  { message: "Bountiful Harvest!", emoji: "🌾" },
+  { message: "Golden Fortune!", emoji: "✨" },
+  { message: "Abundant Blessings!", emoji: "🍀" },
+  { message: "Prosperity Flows!", emoji: "💫" },
+];
+
 const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   const [grid, setGrid] = useState<Cell[][]>([]);
   const [isSpinning, setIsSpinning] = useState(false);
-  const [totalWinnings, setTotalWinnings] = useState(0);
+  const [showWinDialog, setShowWinDialog] = useState(false);
+  const [winMessage, setWinMessage] = useState({ message: "", emoji: "" });
   const baseBet = 0.01;
-
-  useEffect(() => {
-    initializeGrid();
-  }, []);
 
   const initializeGrid = () => {
     const newGrid = createInitialGrid();
@@ -44,6 +49,11 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     if (isSpinning) return;
     
     setIsSpinning(true);
+    setShowWinDialog(false);
+    
+    // Deduct bet amount before spin
+    onWinningsUpdate(-(baseBet * betMultiplier));
+    
     const newGrid = createInitialGrid();
     setGrid(newGrid);
 
@@ -55,6 +65,12 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       checkAllPaylines();
       setIsSpinning(false);
     }, 1000);
+  };
+
+  const showWinningAnimation = (payout: number) => {
+    const randomMessage = WINNING_MESSAGES[Math.floor(Math.random() * WINNING_MESSAGES.length)];
+    setWinMessage(randomMessage);
+    setShowWinDialog(true);
   };
 
   const checkAllPaylines = async () => {
@@ -100,6 +116,8 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
             }
           });
 
+          showWinningAnimation(payout);
+
           toast({
             title: "🌟 Winning Combination!",
             description: `${matchCount} matches with ${payout.toFixed(3)} SOL payout${hasWild ? " (Wild Bonus!)" : ""}`,
@@ -111,7 +129,6 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
 
     if (hasMatches) {
       setGrid(newGrid);
-      setTotalWinnings(prev => prev + currentWinnings);
       await new Promise(resolve => setTimeout(resolve, 500));
       await handleMatches();
     }
@@ -195,6 +212,13 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
         >
           {isSpinning ? "Spinning..." : "Spin"}
         </Button>
+
+        <WinningDialog
+          isOpen={showWinDialog}
+          onClose={() => setShowWinDialog(false)}
+          message={winMessage.message}
+          emoji={winMessage.emoji}
+        />
       </div>
     </Card>
   );
