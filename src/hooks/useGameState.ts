@@ -85,19 +85,18 @@ export const useGameState = (
       setShowLoseDialog(true);
     } else {
       console.log('🎯 Matches found! Starting win sequence');
-      console.log('🎲 Updating matched states in grid');
       
-      // Update matched states in place
+      // Update matched states in place without creating new references
       result.updatedGrid.forEach((row, i) => {
         row.forEach((cell, j) => {
           if (cell.matched) {
             console.log(`🎯 Marking cell at [${i},${j}] as matched`);
             grid[i][j].matched = true;
           }
-          grid[i][j].isDropping = false;
         });
       });
       
+      // Force re-render while preserving cell references
       console.log('🔄 Forcing grid re-render while preserving cell references');
       setGrid([...grid]);
       
@@ -155,12 +154,24 @@ export const useGameState = (
     console.log('📥 Setting new grid with dropping pieces');
     setGrid(newGrid);
     
+    // Calculate total animation time based on grid size and piece delay
     const totalPieces = GRID_SIZE * GRID_SIZE;
-    const pieceDelay = 100;
-    const totalDelay = totalPieces * pieceDelay;
+    const pieceDelay = 100; // milliseconds between each piece
+    const dropDuration = 600; // CSS animation duration
+    const totalDelay = (totalPieces * pieceDelay) + dropDuration;
     
     console.log(`⏳ Waiting ${totalDelay}ms for pieces to drop before checking paylines`);
-    await new Promise(resolve => setTimeout(resolve, totalDelay + 500));
+    await new Promise(resolve => setTimeout(resolve, totalDelay));
+    
+    // Update grid to remove dropping states after animation
+    const updatedGrid = newGrid.map(row => 
+      row.map(cell => ({
+        ...cell,
+        isDropping: false
+      }))
+    );
+    setGrid(updatedGrid);
+    
     console.log('✅ Drop animation complete, checking paylines');
     await checkPaylines();
   };
