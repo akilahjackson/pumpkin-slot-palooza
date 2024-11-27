@@ -55,15 +55,6 @@ export const useGameState = (
     setShowWinDialog(false);
     setIsBigWin(false);
     setHasWildBonus(false);
-    // Reset matched state for all cells
-    setGrid(prevGrid => 
-      prevGrid.map(row => 
-        row.map(cell => ({
-          ...cell,
-          matched: false
-        }))
-      )
-    );
   };
 
   const checkPaylines = async () => {
@@ -113,6 +104,16 @@ export const useGameState = (
     resetGameState();
     setIsSpinning(true);
     setIsInitialLoad(false);
+    
+    // Reset matched state for all cells before new spin
+    setGrid(prevGrid => 
+      prevGrid.map(row => 
+        row.map(cell => ({
+          ...cell,
+          matched: false
+        }))
+      )
+    );
     
     audioManager.stopAllSoundEffects();
     audioManager.playBackgroundMusic();
