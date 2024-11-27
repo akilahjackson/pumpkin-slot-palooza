@@ -28,6 +28,16 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const baseBet = 0.01;
 
+  // Show welcome message only once when component mounts
+  useEffect(() => {
+    initializeGrid();
+    toast({
+      title: "Welcome to Harvest Slots! 🎮",
+      description: "Place your bet and click Spin to start playing!",
+      duration: 5000,
+    });
+  }, []); // Empty dependency array ensures this runs only once
+
   const triggerWinningEffects = () => {
     const duration = 2000;
     const end = Date.now() + duration;
@@ -61,21 +71,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     console.log('Initializing grid - isInitialLoad:', isInitialLoad);
     const newGrid = createInitialGrid();
     setGrid(newGrid);
-    if (!isInitialLoad) {
-      audioManager.playDropSound();
-    }
   };
-
-  useEffect(() => {
-    if (isInitialLoad) {
-      initializeGrid();
-      toast({
-        title: "Welcome to the Game! 🎮",
-        description: "Place your bet and click Spin to start playing!",
-        duration: 5000,
-      });
-    }
-  }, [isInitialLoad]);
 
   const resetGameState = () => {
     setShowLoseDialog(false);
@@ -131,10 +127,12 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     setShowWinDialog(false);
     audioManager.stopAllSoundEffects();
     audioManager.playBackgroundMusic();
+    audioManager.playDropSound();
     
     onWinningsUpdate(-(baseBet * betMultiplier));
     console.log('Bet deducted:', -(baseBet * betMultiplier));
     
+    // Create new grid with unique keys for each spin
     const newGrid = createInitialGrid().map(row => 
       row.map(cell => ({
         ...cell,
@@ -155,11 +153,6 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       checkPaylines();
     }, totalDelay);
   };
-
-  if (!grid.length) {
-    initializeGrid();
-    return null;
-  }
 
   return (
     <Card className="bg-transparent border-amber-600/20 backdrop-blur-sm shadow-xl p-8">
