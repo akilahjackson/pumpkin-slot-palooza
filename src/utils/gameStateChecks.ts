@@ -22,6 +22,7 @@ const checkPaylineMatch = (
   payline: [number, number][],
   grid: Cell[][]
 ): PaylineCheckResult => {
+  console.log('Checking payline:', payline);
   const symbols: number[] = payline.map(([row, col]) => grid[row][col].type);
   let matchCount = 0;
   let hasWild = false;
@@ -43,13 +44,14 @@ const checkPaylineMatch = (
     if (isMatch(nextSymbol) && isMatch(thirdSymbol)) {
       matchCount = 3;
       hasWild = [nextSymbol, thirdSymbol].includes(GAME_PIECES.WILD);
-      matchedPositions = payline.slice(i, i + 3) as [number, number][];
+      // Ensure positions are properly typed as tuples
+      matchedPositions = payline.slice(i, i + 3).map(pos => [pos[0], pos[1]] as [number, number]);
 
       // Check for additional matches
       for (let j = i + 3; j < symbols.length; j++) {
         if (isMatch(symbols[j])) {
           matchCount++;
-          matchedPositions.push(payline[j] as [number, number]);
+          matchedPositions.push([payline[j][0], payline[j][1]] as [number, number]);
         } else {
           break;
         }
@@ -61,6 +63,7 @@ const checkPaylineMatch = (
     }
   }
 
+  console.log('Match result:', { matchCount, hasWild, matchedPositions, winnings });
   return {
     hasMatches: matchCount >= 3,
     winnings,
@@ -99,7 +102,9 @@ export const checkGameState = (
 
   PAYLINES.forEach((payline, index) => {
     console.log(`Checking payline ${index}:`, payline);
-    const result = checkPaylineMatch(payline, newGrid);
+    // Ensure payline is properly typed before passing to checkPaylineMatch
+    const typedPayline = payline.map(pos => [pos[0], pos[1]] as [number, number]);
+    const result = checkPaylineMatch(typedPayline, newGrid);
     console.log(`Payline ${index} result:`, result);
 
     if (result.hasMatches) {
