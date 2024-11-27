@@ -19,7 +19,7 @@ const GamePiece = ({ type, isMatched, isSelected, isDropping }: GamePieceProps) 
         "transform hover:scale-105",
         isMatched && isWild ? "animate-flash" : isMatched ? "bg-amber-500" : "bg-amber-900/20 backdrop-blur-sm",
         isSelected && "ring-2 ring-amber-400",
-        isDropping && "animate-fade-in-down"
+        isDropping ? "cell-enter" : ""
       )}
     >
       <span 

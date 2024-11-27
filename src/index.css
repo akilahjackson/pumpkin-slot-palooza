@@ -45,6 +45,25 @@
   .cell.matched {
     @apply animate-glow;
   }
+
+  .cell-enter {
+    animation: cellEnter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform-origin: top center;
+  }
+}
+
+@keyframes cellEnter {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) translateY(-100px) rotate(-20deg);
+  }
+  60% {
+    transform: scale(1.2) translateY(10px) rotate(5deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0) rotate(0deg);
+  }
 }
 
 @keyframes drop {
