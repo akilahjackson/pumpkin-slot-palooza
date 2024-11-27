@@ -120,8 +120,11 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       }
     });
 
+    // Only play lose sound after all paylines have been checked and no matches found
     if (!hasMatches && !hasWinningCombination) {
-      audioManager.playLoseSound();
+      setTimeout(() => {
+        audioManager.playLoseSound();
+      }, 500);
     }
 
     if (hasMatches) {

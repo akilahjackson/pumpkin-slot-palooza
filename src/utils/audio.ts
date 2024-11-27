@@ -17,6 +17,11 @@ class AudioManager {
     // Add event listener to track when win sound finishes
     this.winSound.addEventListener('ended', () => {
       this.isWinSoundPlaying = false;
+      this.backgroundMusic.play();
+    });
+
+    this.loseSound.addEventListener('ended', () => {
+      this.backgroundMusic.play();
     });
   }
 
@@ -50,6 +55,7 @@ class AudioManager {
     if (!this.isMuted && !this.isWinSoundPlaying) {
       console.log('Playing win sound');
       this.isWinSoundPlaying = true;
+      this.backgroundMusic.pause();
       this.winSound.currentTime = 0;
       this.winSound.play().catch(console.error);
     }
@@ -58,6 +64,7 @@ class AudioManager {
   playLoseSound() {
     if (!this.isMuted && !this.isWinSoundPlaying) {
       console.log('Playing lose sound');
+      this.backgroundMusic.pause();
       this.loseSound.currentTime = 0;
       this.loseSound.play().catch(console.error);
     }
