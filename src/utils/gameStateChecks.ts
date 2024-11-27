@@ -20,6 +20,11 @@ interface GameCheckResult {
   };
 }
 
+// Type guard to ensure we have a valid position tuple
+function isValidPositionTuple(arr: number[]): arr is [number, number] {
+  return arr.length === 2 && !isNaN(arr[0]) && !isNaN(arr[1]);
+}
+
 export const checkGameState = (
   grid: Cell[][],
   baseBet: number,
@@ -67,12 +72,10 @@ export const checkGameState = (
     }
   });
 
-  // Convert the Set of position strings to an array of tuples
-  const positions = Array.from(matchedPositionsSet);
-  const uniqueMatchedPositions: [number, number][] = positions.map(pos => {
-    const [row, col] = pos.split(',').map(Number);
-    return [row, col] as const;
-  });
+  // Convert positions with validation
+  const uniqueMatchedPositions: [number, number][] = Array.from(matchedPositionsSet)
+    .map(pos => pos.split(',').map(Number))
+    .filter(isValidPositionTuple);
 
   const snapshot = createGameStateSnapshot(grid, uniqueMatchedPositions);
   
