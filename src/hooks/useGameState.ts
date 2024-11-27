@@ -76,12 +76,15 @@ export const useGameState = (
     } else {
       console.log('Matches found! Displaying win');
       
-      const updatedGrid = result.updatedGrid.map(row => 
-        row.map(cell => ({
+      // Important: Create a new grid with matched positions preserved
+      const updatedGrid = grid.map((row, i) => 
+        row.map((cell, j) => ({
           ...cell,
-          matched: cell.matched
+          matched: result.updatedGrid[i][j].matched
         }))
       );
+      
+      console.log('Setting updated grid with matches:', updatedGrid);
       setGrid(updatedGrid);
       
       audioManager.stopBackgroundMusic();
