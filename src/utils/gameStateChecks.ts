@@ -1,5 +1,5 @@
 import { Cell } from "./gameTypes";
-import { PAYLINES } from "./gameConstants";
+import { PAYLINES, PUMPKIN_TYPES } from "./gameConstants";
 import { checkPaylineMatch, PaylineCheckResult } from "./paylineChecks";
 import { createGameStateSnapshot } from "./verificationUtils";
 
@@ -53,7 +53,9 @@ export const checkGameState = (
       result.matchedPositions.forEach(position => {
         const [row, col] = position;
         newGrid[row][col].matched = true;
-        matchedPositions.push(position);
+        if (!matchedPositions.some(([r, c]) => r === row && c === col)) {
+          matchedPositions.push(position);
+        }
       });
 
       if (result.winnings > highestMultiplier) {

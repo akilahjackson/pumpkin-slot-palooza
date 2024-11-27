@@ -1,5 +1,5 @@
-import { Cell } from "./gameTypes";
-import { GAME_PIECES } from "./gameConstants";
+import { Cell } from './gameTypes';
+import { GAME_PIECES } from './gameConstants';
 
 export interface PaylineCheckResult {
   hasMatches: boolean;
@@ -15,26 +15,35 @@ export const checkPaylineMatch = (
   grid: Cell[][],
   paylineIndex: number
 ): PaylineCheckResult => {
-  const verificationId = `payline-${paylineIndex}-${Date.now()}`;
+  console.log(`\n🎰 Checking payline ${paylineIndex}`);
   
-  // Get symbols for the payline
+  const verificationId = `payline-${paylineIndex}-${Date.now()}`;
   const symbols = payline.map(([row, col]) => grid[row][col].type);
   
-  // Count consecutive matches from start
-  let matchCount = 1;
-  let hasWild = symbols[0] === GAME_PIECES.WILD;
-  let baseSymbol = symbols[0];
-  let matchedPositions: [number, number][] = [payline[0]];
+  console.log('Symbols in payline:', symbols.map(s => 
+    s === GAME_PIECES.WILD ? '🌟' : PUMPKIN_TYPES[s]
+  ).join(' '));
   
-  // If first symbol is wild, find first non-wild symbol
-  if (baseSymbol === GAME_PIECES.WILD) {
-    for (let i = 1; i < symbols.length; i++) {
-      if (symbols[i] !== GAME_PIECES.WILD) {
-        baseSymbol = symbols[i];
-        break;
-      }
+  // Find first non-wild symbol to use as base
+  let baseSymbol = symbols[0];
+  let startIndex = 0;
+  
+  while (baseSymbol === GAME_PIECES.WILD && startIndex < symbols.length) {
+    startIndex++;
+    if (startIndex < symbols.length) {
+      baseSymbol = symbols[startIndex];
     }
   }
+  
+  // If all symbols are wild, use wild as base
+  if (startIndex === symbols.length) {
+    baseSymbol = GAME_PIECES.WILD;
+    startIndex = 0;
+  }
+  
+  let matchCount = 1;
+  let hasWild = symbols[0] === GAME_PIECES.WILD;
+  let matchedPositions: [number, number][] = [payline[0]];
   
   // Check consecutive matches
   for (let i = 1; i < symbols.length; i++) {
@@ -50,18 +59,17 @@ export const checkPaylineMatch = (
       break;
     }
   }
-
-  console.log(`Payline ${paylineIndex} check:`, {
-    symbols: symbols.join(','),
-    matchCount,
-    hasWild,
-    baseSymbol,
-    positions: matchedPositions
-  });
-
+  
+  console.log(`Match count: ${matchCount}, Has wild: ${hasWild}`);
+  console.log('Matched positions:', matchedPositions);
+  
+  const isWinningSequence = matchCount >= 3;
+  const winMultiplier = hasWild ? 2 : 1;
+  const winnings = isWinningSequence ? matchCount * winMultiplier : 0;
+  
   return {
-    hasMatches: matchCount >= 3,
-    winnings: matchCount >= 3 ? matchCount * (hasWild ? 2 : 1) : 0,
+    hasMatches: isWinningSequence,
+    winnings,
     hasWild,
     matchedPositions,
     symbolCombination: `${matchCount}x ${baseSymbol}${hasWild ? ' with WILD' : ''}`,
