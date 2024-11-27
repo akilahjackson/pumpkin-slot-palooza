@@ -5,6 +5,7 @@ import { createInitialGrid, isValidPosition } from "../utils/gameLogic";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Clover } from "lucide-react";
 import GamePiece from "./GamePiece";
 import { audioManager } from "@/utils/audio";
 import { handlePaylineCheck } from "@/utils/paylineUtils";
