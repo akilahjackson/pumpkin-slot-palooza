@@ -32,10 +32,9 @@ export const checkGameState = (
   let totalWinnings = 0;
   let highestMultiplier = 0;
   let hasWildBonus = false;
-  const allMatchedPositions = new Set<string>();
+  const matchedPositionsSet = new Set<string>();
   const paylineResults: PaylineCheckResult[] = [];
 
-  // Check each payline
   PAYLINES.forEach((payline, index) => {
     const result = checkPaylineMatch(payline, newGrid, index);
     paylineResults.push(result);
@@ -45,18 +44,16 @@ export const checkGameState = (
       totalWinnings += winAmount;
       
       console.log(`\n💎 Win on payline ${index}:`, {
-        combination: result.symbolCombination,
         amount: winAmount,
         positions: result.matchedPositions
       });
       
       onWinningsUpdate(winAmount);
 
-      // Mark matched positions on grid and add to unique set
       result.matchedPositions.forEach(([row, col]) => {
         if (newGrid[row] && newGrid[row][col]) {
           newGrid[row][col].matched = true;
-          allMatchedPositions.add(`${row},${col}`);
+          matchedPositionsSet.add(`${row},${col}`);
         }
       });
 
@@ -70,8 +67,8 @@ export const checkGameState = (
     }
   });
 
-  // Convert Set back to array of positions
-  const uniqueMatchedPositions: [number, number][] = Array.from(allMatchedPositions)
+  // Convert Set back to array of tuples with explicit typing
+  const uniqueMatchedPositions: [number, number][] = Array.from(matchedPositionsSet)
     .map(pos => {
       const [row, col] = pos.split(',').map(Number);
       return [row, col] as [number, number];
