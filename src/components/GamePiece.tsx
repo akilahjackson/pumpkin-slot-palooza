@@ -22,12 +22,12 @@ const GamePiece = ({ type, isMatched, isSelected, isDropping, dropDelay = 0 }: G
         "relative w-full h-full flex items-center justify-center",
         "rounded-lg transition-all duration-300",
         "transform hover:scale-105",
-        isMatched && isWild ? "animate-[pulse_0.5s_ease-in-out_infinite] bg-yellow-500/50" : 
-        isMatched ? "animate-[bounce_0.5s_ease-in-out_infinite] bg-amber-500/50" : 
+        isMatched && isWild ? "animate-flash" : 
+        isMatched ? "animate-glow" : 
         "bg-amber-900/20 backdrop-blur-sm",
         isSelected && "ring-2 ring-amber-400",
-        !isMatched && isDropping && "animate-piece-drop",
-        !isMatched && !isDropping && "animate-piece-enter"
+        !isMatched && isDropping && "animate-drop",
+        !isMatched && !isDropping && "animate-fade-in-down"
       )}
     >
       <span 
@@ -36,7 +36,7 @@ const GamePiece = ({ type, isMatched, isSelected, isDropping, dropDelay = 0 }: G
           "rounded-lg p-2",
           isMatched ? "text-white scale-125" : "bg-amber-400/5",
           isWild && "text-yellow-300 font-bold",
-          isMatched && "animate-[scale-in_0.5s_ease-in-out_infinite]",
+          isMatched && "animate-bounce",
           "hover:scale-110 select-none"
         )}
       >

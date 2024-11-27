@@ -14,14 +14,12 @@ const GameBoard = ({ grid, isInitialLoad }: GameBoardProps) => {
   useEffect(() => {
     if (!grid || grid.length === 0) return;
 
-    // Initialize visiblePieces array with correct dimensions
     const newVisiblePieces = Array(grid.length)
       .fill(false)
       .map(() => Array(grid[0].length).fill(false));
     
     setVisiblePieces(newVisiblePieces);
 
-    // Only animate pieces on initial load
     if (isInitialLoad) {
       grid.forEach((row, i) => {
         row.forEach((_, j) => {
@@ -35,7 +33,6 @@ const GameBoard = ({ grid, isInitialLoad }: GameBoardProps) => {
         });
       });
     } else {
-      // Show all pieces immediately for spins
       setVisiblePieces(Array(grid.length).fill(true).map(() => Array(grid[0].length).fill(true)));
     }
   }, [grid, isInitialLoad]);
@@ -48,7 +45,7 @@ const GameBoard = ({ grid, isInitialLoad }: GameBoardProps) => {
     <div className="game-grid">
       {grid.map((row, i) =>
         row.map((cell, j) => (
-          <div key={cell.key} className="cell">
+          <div key={`${cell.key}-${cell.matched}`} className="cell">
             {(!isInitialLoad || (visiblePieces[i] && visiblePieces[i][j])) && (
               <GamePiece
                 type={PUMPKIN_TYPES[cell.type]}
