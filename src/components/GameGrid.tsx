@@ -17,6 +17,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   const [grid, setGrid] = useState<Cell[][]>([]);
   const [isSpinning, setIsSpinning] = useState(false);
   const baseBet = 0.01;
+  const [hasWinningCombination, setHasWinningCombination] = useState(false);
 
   const initializeGrid = () => {
     const newGrid = createInitialGrid();
@@ -41,6 +42,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     if (isSpinning) return;
     
     setIsSpinning(true);
+    setHasWinningCombination(false);
     audioManager.stopAllSoundEffects();
     
     // Deduct bet amount before spin
@@ -60,7 +62,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     }, 1000);
   };
 
-  const checkAllPaylines = async () => {
+  const checkAllPaylines = async (): Promise<boolean> => {
     if (!grid.length) return false;
     
     let hasMatches = false;
@@ -97,6 +99,11 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
           onWinningsUpdate(payout);
           console.log('Win payout:', payout);
 
+          if (!hasMatches) {
+            setHasWinningCombination(true);
+            audioManager.playWinSound();
+          }
+
           validPositions.slice(i, i + matchCount).forEach(([row, col]) => {
             if (isValidPosition(row, col)) {
               newGrid[row][col].matched = true;
@@ -112,6 +119,10 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
         }
       }
     });
+
+    if (!hasMatches && !hasWinningCombination) {
+      audioManager.playLoseSound();
+    }
 
     if (hasMatches) {
       setGrid(newGrid);
