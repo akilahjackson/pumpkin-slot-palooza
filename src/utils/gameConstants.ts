@@ -1,21 +1,24 @@
 export const GRID_SIZE = 6;
-export const PUMPKIN_TYPES = ["🎃", "👻", "🦇", "🕷️", "🕸️"];
 
-// Define the paylines (horizontal, vertical, and diagonal patterns)
+export const PUMPKIN_TYPES = ["🎃", "🌾", "🍎", "🌽", "🍇", "🍁"];
+
+// Define 12 paylines (horizontal, vertical, and diagonal)
 export const PAYLINES = [
-  // Horizontal lines (6)
+  // Horizontal lines
   [[0,0], [0,1], [0,2], [0,3], [0,4], [0,5]],
   [[1,0], [1,1], [1,2], [1,3], [1,4], [1,5]],
   [[2,0], [2,1], [2,2], [2,3], [2,4], [2,5]],
   [[3,0], [3,1], [3,2], [3,3], [3,4], [3,5]],
   [[4,0], [4,1], [4,2], [4,3], [4,4], [4,5]],
   [[5,0], [5,1], [5,2], [5,3], [5,4], [5,5]],
-  // Vertical lines (3)
+  
+  // Vertical lines
+  [[0,0], [1,0], [2,0], [3,0], [4,0], [5,0]],
   [[0,2], [1,2], [2,2], [3,2], [4,2], [5,2]],
-  [[0,3], [1,3], [2,3], [3,3], [4,3], [5,3]],
   [[0,4], [1,4], [2,4], [3,4], [4,4], [5,4]],
-  // Diagonal lines (3)
-  [[0,0], [1,1], [2,2], [3,3], [4,4], [5,5]], // Diagonal from top-left
-  [[0,5], [1,4], [2,3], [3,2], [4,1], [5,0]], // Diagonal from top-right
-  [[2,0], [3,1], [4,2], [5,3]], // Short diagonal
+  
+  // Diagonal lines
+  [[0,0], [1,1], [2,2], [3,3], [4,4], [5,5]], // Main diagonal
+  [[0,5], [1,4], [2,3], [3,2], [4,1], [5,0]], // Other diagonal
+  [[0,2], [1,3], [2,4], [3,5]], // Short diagonal
 ];

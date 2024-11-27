@@ -3,6 +3,19 @@ import { GRID_SIZE, PUMPKIN_TYPES, PAYLINES } from "../utils/gameConstants";
 import { Cell, Position } from "../utils/gameTypes";
 import { createInitialGrid, isValidPosition, isAdjacent } from "../utils/gameLogic";
 import { toast } from "@/components/ui/use-toast";
+import { Card } from "@/components/ui/card";
+
+const harvestMessages = [
+  "A bountiful harvest! 🌾",
+  "Your fields are overflowing! 🌟",
+  "Nature's abundance flows! 🍂",
+  "A golden harvest awaits! ✨",
+  "Prosperity blooms! 🌺",
+];
+
+const getRandomMessage = () => {
+  return harvestMessages[Math.floor(Math.random() * harvestMessages.length)];
+};
 
 const GameGrid = () => {
   const [grid, setGrid] = useState<Cell[][]>([]);
@@ -28,7 +41,6 @@ const GameGrid = () => {
   };
 
   const calculatePayout = (matchCount: number): number => {
-    // Base payout of 0.01 SOL per match, multiplied by the number of matching pieces
     return 0.01 * matchCount;
   };
 
@@ -51,7 +63,6 @@ const GameGrid = () => {
       
       for (let i = 0; i < symbols.length - 2; i++) {
         if (symbols[i] === symbols[i + 1] && symbols[i] === symbols[i + 2]) {
-          // Count how many pieces match in sequence
           let matchCount = 3;
           for (let j = i + 3; j < symbols.length; j++) {
             if (symbols[j] === symbols[i]) {
@@ -69,10 +80,10 @@ const GameGrid = () => {
             hasMatches = true;
           });
 
-          // Show toast message for the win
           toast({
-            title: "Winner! 🎉",
+            title: getRandomMessage(),
             description: `Payline ${paylineIndex + 1}: ${matchCount} matches for ${payout.toFixed(3)} SOL`,
+            className: "bg-gradient-to-r from-amber-200 to-yellow-400 text-amber-900 border-amber-300",
           });
         }
       }
@@ -181,35 +192,39 @@ const GameGrid = () => {
   if (!grid.length) return null;
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">Match 3 Game</h2>
-        <div className="text-lg font-semibold text-casino-purple">
-          Total Winnings: {totalWinnings.toFixed(3)} SOL
+    <Card className="p-8 bg-gradient-to-b from-amber-900/10 to-orange-900/10 border-amber-600/20">
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-amber-200 to-yellow-400 bg-clip-text text-transparent">
+            Harvest Match
+          </h2>
+          <div className="text-lg font-semibold text-amber-400">
+            Total Harvest: {totalWinnings.toFixed(3)} SOL
+          </div>
+        </div>
+        
+        <div className="game-grid">
+          {grid.map((row, i) =>
+            row.map((cell, j) => (
+              <div
+                key={cell.key}
+                className={`cell
+                  ${cell.matched ? "animate-pulse bg-amber-400/20" : ""} 
+                  ${cell.isDropping ? "animate-fade-in-down" : ""}
+                  ${selectedCell?.row === i && selectedCell?.col === j ? "ring-2 ring-amber-400" : ""}
+                  cursor-pointer hover:bg-amber-400/10 transition-all duration-300
+                  rounded-lg backdrop-blur-sm`}
+                onClick={() => handleCellClick(i, j)}
+              >
+                <span className="text-3xl transform transition-transform hover:scale-110">
+                  {PUMPKIN_TYPES[cell.type]}
+                </span>
+              </div>
+            ))
+          )}
         </div>
       </div>
-      
-      <div className="game-grid">
-        {grid.map((row, i) =>
-          row.map((cell, j) => (
-            <div
-              key={cell.key}
-              className={`cell
-                ${cell.matched ? "animate-pulse bg-white/20" : ""} 
-                ${cell.isDropping ? "animate-fade-in-down" : ""}
-                ${selectedCell?.row === i && selectedCell?.col === j ? "ring-2 ring-white" : ""}
-                cursor-pointer hover:bg-white/20 transition-all duration-300
-                rounded-lg backdrop-blur-sm`}
-              onClick={() => handleCellClick(i, j)}
-            >
-              <span className="text-3xl transform transition-transform hover:scale-110">
-                {PUMPKIN_TYPES[cell.type]}
-              </span>
-            </div>
-          ))
-        )}
-      </div>
-    </div>
+    </Card>
   );
 };
 
