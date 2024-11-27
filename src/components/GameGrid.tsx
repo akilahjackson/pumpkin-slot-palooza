@@ -29,15 +29,17 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   const baseBet = 0.01;
 
   useEffect(() => {
-    const initialGrid = createInitialGrid();
-    console.log('Initializing grid with dimensions:', initialGrid.length, 'x', initialGrid[0]?.length);
-    setGrid(initialGrid);
-    
-    toast({
-      title: "Welcome to Harvest Slots! 🎮",
-      description: "Place your bet and click Spin to start playing!",
-      duration: 5000,
-    });
+    if (!grid || grid.length === 0) {
+      console.log('Initial grid creation');
+      const initialGrid = createInitialGrid();
+      setGrid(initialGrid);
+      
+      toast({
+        title: "Welcome to Harvest Slots! 🎮",
+        description: "Place your bet and click Spin to start playing!",
+        duration: 5000,
+      });
+    }
   }, []);
 
   const triggerWinningEffects = () => {
@@ -93,6 +95,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       audioManager.stopBackgroundMusic();
       audioManager.playLoseSound();
       setShowLoseDialog(true);
+      setIsSpinning(false);
     } else {
       console.log('Matches found! Displaying win');
       audioManager.stopBackgroundMusic();
@@ -106,16 +109,10 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
         setShowWinDialog(true);
       }
       
-      // Update grid with matched cells for animation
       setGrid(result.updatedGrid);
       triggerWinningEffects();
-    }
-    
-    // Always ensure spinning state is reset
-    setTimeout(() => {
       setIsSpinning(false);
-      setIsInitialLoad(false);
-    }, 500);
+    }
   };
 
   const spin = async () => {
@@ -127,12 +124,13 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     console.log('Starting new spin');
     resetGameState();
     setIsSpinning(true);
+    setIsInitialLoad(false);
+    
     audioManager.stopAllSoundEffects();
     audioManager.playBackgroundMusic();
     audioManager.playDropSound();
     
     onWinningsUpdate(-(baseBet * betMultiplier));
-    console.log('Bet deducted:', -(baseBet * betMultiplier));
     
     const newGrid = createInitialGrid();
     if (!newGrid || newGrid.length === 0) {
@@ -150,14 +148,9 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     );
     
     setGrid(gridWithKeys);
-
-    const totalPieces = GRID_SIZE * GRID_SIZE;
-    const pieceDelay = 100;
-    const extraDelay = 1000;
-    const totalDelay = (totalPieces * pieceDelay) + extraDelay;
-
-    console.log(`Setting timeout for ${totalDelay}ms before checking paylines`);
-    setTimeout(checkPaylines, totalDelay);
+    
+    // Wait for pieces to drop before checking paylines
+    setTimeout(checkPaylines, 1000);
   };
 
   return (

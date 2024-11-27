@@ -14,26 +14,30 @@ const GameBoard = ({ grid, isInitialLoad }: GameBoardProps) => {
   useEffect(() => {
     if (!grid || grid.length === 0) return;
 
-    // Initialize visibility matrix with the same dimensions as the grid
-    const newVisiblePieces = Array(grid.length)
-      .fill(false)
-      .map(() => Array(grid[0].length).fill(false));
-    
-    setVisiblePieces(newVisiblePieces);
+    // Only animate pieces on initial load
+    if (isInitialLoad) {
+      const newVisiblePieces = Array(grid.length)
+        .fill(false)
+        .map(() => Array(grid[0].length).fill(false));
+      
+      setVisiblePieces(newVisiblePieces);
 
-    // Show pieces one by one with delays
-    grid.forEach((row, i) => {
-      row.forEach((_, j) => {
-        setTimeout(() => {
-          setVisiblePieces(prev => {
-            const newVisible = prev.map(row => [...row]);
-            newVisible[i][j] = true;
-            return newVisible;
-          });
-        }, (i * grid[0].length + j) * 100);
+      grid.forEach((row, i) => {
+        row.forEach((_, j) => {
+          setTimeout(() => {
+            setVisiblePieces(prev => {
+              const newVisible = prev.map(row => [...row]);
+              newVisible[i][j] = true;
+              return newVisible;
+            });
+          }, (i * grid[0].length + j) * 100);
+        });
       });
-    });
-  }, [grid]);
+    } else {
+      // Show all pieces immediately for spins
+      setVisiblePieces(Array(grid.length).fill(true).map(() => Array(grid[0].length).fill(true)));
+    }
+  }, [grid, isInitialLoad]);
 
   if (!grid || grid.length === 0) {
     return <div>Loading...</div>;
@@ -44,10 +48,10 @@ const GameBoard = ({ grid, isInitialLoad }: GameBoardProps) => {
       {grid.map((row, i) =>
         row.map((cell, j) => (
           <div key={cell.key} className="cell">
-            {visiblePieces[i]?.[j] && (
+            {(!isInitialLoad || visiblePieces[i]?.[j]) && (
               <GamePiece
                 type={PUMPKIN_TYPES[cell.type]}
-                isMatched={!isInitialLoad && cell.matched}
+                isMatched={cell.matched}
                 isSelected={false}
                 isDropping={cell.isDropping}
               />
