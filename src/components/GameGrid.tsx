@@ -117,8 +117,8 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   };
 
   const spin = async () => {
-    if (isSpinning || isDisplayingWin) {
-      console.log('Spin blocked - already spinning or displaying win');
+    if (isSpinning) {
+      console.log('Spin blocked - already spinning');
       return;
     }
     
@@ -160,20 +160,24 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   };
 
   const handleLoseDialogClose = () => {
+    console.log('Closing lose dialog');
     setShowLoseDialog(false);
     setIsDisplayingWin(false);
+    setIsSpinning(false);
   };
 
   const handleWinDialogClose = () => {
+    console.log('Closing win dialog');
     setShowWinDialog(false);
     setIsDisplayingWin(false);
+    setIsSpinning(false);
   };
 
   return (
     <Card className="bg-transparent border-amber-600/20 backdrop-blur-sm shadow-xl p-8">
       <div className="space-y-6">
         <GameBoard grid={grid} isInitialLoad={isInitialLoad} />
-        <GameControls onSpin={spin} isSpinning={isSpinning || isDisplayingWin} />
+        <GameControls onSpin={spin} isSpinning={isSpinning} />
         <GameDialogs
           showLoseDialog={showLoseDialog}
           showWinDialog={showWinDialog}
