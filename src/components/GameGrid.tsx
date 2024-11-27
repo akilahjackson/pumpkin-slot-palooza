@@ -1,15 +1,14 @@
 import { useState } from "react";
-import { GRID_SIZE, PUMPKIN_TYPES, PAYLINES, GAME_PIECES, WILD_MULTIPLIER } from "../utils/gameConstants";
+import { GRID_SIZE, PUMPKIN_TYPES, PAYLINES } from "../utils/gameConstants";
 import { Cell } from "../utils/gameTypes";
-import { createInitialGrid, isValidPosition } from "../utils/gameLogic";
+import { createInitialGrid } from "../utils/gameLogic";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Clover, Trophy } from "lucide-react";
 import GamePiece from "./GamePiece";
 import { audioManager } from "@/utils/audio";
 import { handlePaylineCheck } from "@/utils/paylineUtils";
-import WinningDialog from "./WinningDialog";
+import GameDialogs from "./GameDialogs";
 
 interface GameGridProps {
   betMultiplier: number;
@@ -43,6 +42,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     setIsSpinning(true);
     setHasWinningCombination(false);
     setShowLoseDialog(false);
+    setShowWinDialog(false);
     audioManager.stopAllSoundEffects();
     audioManager.playBackgroundMusic();
     
@@ -82,9 +82,6 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
         if (!hasWinningCombination) {
           setHasWinningCombination(true);
           setShowWinDialog(true);
-          setTimeout(() => {
-            setShowWinDialog(false);
-          }, 5000);
           audioManager.stopBackgroundMusic();
           audioManager.playWinSound();
         }
@@ -101,9 +98,6 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       audioManager.stopBackgroundMusic();
       audioManager.playLoseSound();
       setShowLoseDialog(true);
-      setTimeout(() => {
-        setShowLoseDialog(false);
-      }, 5000);
     }
 
     if (hasMatches) {
@@ -195,20 +189,11 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
           {isSpinning ? "Spinning..." : "Spin"}
         </Button>
 
-        <WinningDialog
-          isOpen={showLoseDialog}
-          onClose={() => setShowLoseDialog(false)}
-          message="Better luck next time! Keep spinning for a chance to win big! 🍀"
-          emoji={<Clover className="text-green-500 w-16 h-16" />}
-          duration={5000}
-        />
-
-        <WinningDialog
-          isOpen={showWinDialog}
-          onClose={() => setShowWinDialog(false)}
-          message="Congratulations! You've hit a winning combination! 🎉"
-          emoji={<Trophy className="text-yellow-500 w-16 h-16" />}
-          duration={5000}
+        <GameDialogs
+          showLoseDialog={showLoseDialog}
+          showWinDialog={showWinDialog}
+          onLoseDialogClose={() => setShowLoseDialog(false)}
+          onWinDialogClose={() => setShowWinDialog(false)}
         />
       </div>
     </Card>
