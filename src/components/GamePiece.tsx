@@ -12,7 +12,7 @@ const GamePiece = ({ type, isMatched, isSelected, isDropping }: GamePieceProps) 
     <div
       className={cn(
         "relative w-full h-full flex items-center justify-center",
-        "rounded-lg backdrop-blur-sm transition-all duration-300",
+        "rounded-lg bg-amber-900/20 backdrop-blur-sm transition-all duration-300",
         "transform hover:scale-105",
         isMatched && "scale-105 animate-pulse shadow-lg shadow-amber-400/50",
         isSelected && "ring-2 ring-amber-400",
