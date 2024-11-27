@@ -25,7 +25,7 @@ const GameBoard = ({ grid }: GameBoardProps) => {
             newVisible[i][j] = true;
             return newVisible;
           });
-        }, (i * grid[0].length + j) * 500); // 500ms delay between each piece
+        }, (i * grid[0].length + j) * 100); // 100ms delay between each piece
       });
     });
   }, [grid]);

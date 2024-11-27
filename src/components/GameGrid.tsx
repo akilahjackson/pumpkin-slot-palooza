@@ -130,7 +130,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
 
     // Wait for all pieces to appear plus extra delay before checking wins
     const totalPieces = GRID_SIZE * GRID_SIZE;
-    const pieceDelay = 500; // 500ms between each piece
+    const pieceDelay = 100; // 100ms delay between each piece
     const extraDelay = 1000; // Additional 1s delay before checking wins
     const totalDelay = (totalPieces * pieceDelay) + extraDelay;
 
