@@ -6,6 +6,7 @@ import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import GamePiece from "./GamePiece";
+import { audioManager } from "@/utils/audio";
 
 interface GameGridProps {
   betMultiplier: number;
@@ -20,6 +21,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   const initializeGrid = () => {
     const newGrid = createInitialGrid();
     setGrid(newGrid);
+    audioManager.playDropSound();
     
     setTimeout(() => {
       const updatedGrid = newGrid.map(row =>
@@ -171,7 +173,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   }
 
   return (
-    <Card className="p-8 bg-gradient-to-b from-amber-900/10 to-orange-900/10 border-amber-600/20">
+    <Card className="p-8 bg-gradient-to-b from-amber-900/10 to-orange-900/10 border-amber-600/20 backdrop-blur-sm">
       <div className="space-y-6">
         <div className="game-grid">
           {grid.map((row, i) =>
