@@ -33,9 +33,11 @@ export const checkGameState = (
   let highestMultiplier = 0;
   let hasWildBonus = false;
   const matchedPositions: [number, number][] = [];
+  const paylineResults: PaylineCheckResult[] = [];
 
   PAYLINES.forEach((payline, index) => {
     const result = checkPaylineMatch(payline, newGrid, index);
+    paylineResults.push(result);
     
     if (result.hasMatches) {
       const winAmount = result.winnings * baseBet * betMultiplier;
@@ -48,7 +50,9 @@ export const checkGameState = (
       
       onWinningsUpdate(winAmount);
 
-      result.matchedPositions.forEach(([row, col]) => {
+      // Ensure matched positions are properly typed tuples
+      result.matchedPositions.forEach((position: [number, number]) => {
+        const [row, col] = position;
         if (newGrid[row] && newGrid[row][col]) {
           newGrid[row][col].matched = true;
           matchedPositions.push([row, col]);
@@ -86,7 +90,7 @@ export const checkGameState = (
     verificationDetails: {
       id: snapshot.verificationId,
       timestamp: snapshot.timestamp,
-      paylineResults: PAYLINES.map((_, i) => checkPaylineMatch(PAYLINES[i], newGrid, i)),
+      paylineResults,
       totalPayout: totalWinnings,
       gridSnapshot: snapshot.gridState
     }

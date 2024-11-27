@@ -65,7 +65,12 @@ export const checkPaylineMatch = (
     }
 
     if (sequence.length >= 3 && sequence.length > maxSequence.length) {
-      maxSequence = sequence;
+      maxSequence = {
+        length: sequence.length,
+        positions: sequence.positions as [number, number][],
+        hasWild: sequence.hasWild,
+        baseSymbol: sequence.baseSymbol
+      };
     }
   }
 
