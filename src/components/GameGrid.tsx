@@ -29,7 +29,6 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
         row.map(cell => ({ ...cell, isDropping: false }))
       );
       setGrid(updatedGrid);
-      checkAllPaylines();
     }, 500);
   };
 
@@ -124,7 +123,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     if (!hasMatches && !hasWinningCombination) {
       setTimeout(() => {
         audioManager.playLoseSound();
-      }, 500);
+      }, 1000);
     }
 
     if (hasMatches) {

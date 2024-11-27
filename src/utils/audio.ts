@@ -77,6 +77,7 @@ class AudioManager {
     this.winSound.currentTime = 0;
     this.loseSound.pause();
     this.loseSound.currentTime = 0;
+    this.playBackgroundMusic();
   }
 }
 
