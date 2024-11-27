@@ -23,7 +23,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   const [showWinDialog, setShowWinDialog] = useState(false);
   const [isBigWin, setIsBigWin] = useState(false);
   const [isDisplayingWin, setIsDisplayingWin] = useState(false);
-  const [totalWinnings, setTotalWinnings] = useState(0); // Add this line
+  const [totalWinnings, setTotalWinnings] = useState(0);
   const baseBet = 0.01;
 
   const triggerWinningEffects = () => {
@@ -123,7 +123,8 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
         currentTotalWinnings += result.winnings;
         onWinningsUpdate(result.winnings);
         
-        const multiplier = result.winnings / (baseBet * betMultiplier);
+        // Calculate the true multiplier based on the base bet only
+        const multiplier = result.winnings / baseBet;
         console.log('Win multiplier:', multiplier);
         
         if (multiplier > highestMultiplier) {
@@ -134,6 +135,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
           hasWildBonus = true;
         }
 
+        // Show big win dialog for 50x or higher multipliers of the base bet
         const isBigWinAmount = multiplier >= 50;
         if (isBigWinAmount) {
           console.log('Big win detected! Multiplier:', multiplier);
@@ -157,14 +159,12 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       setIsDisplayingWin(true);
       setTotalWinnings(currentTotalWinnings);
       
-      // Show toast notification for any win
       toast({
         title: "Winner! 🎉",
         description: `You won ${currentTotalWinnings.toFixed(3)} SOL!${hasWildBonus ? ' (Including Wild Bonus! 🌟)' : ''}`,
         duration: 3000,
       });
       
-      // Only show win dialog for big wins (50x or higher)
       if (highestMultiplier >= 50) {
         setIsBigWin(true);
         setShowWinDialog(true);
@@ -189,8 +189,9 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
           showLoseDialog={showLoseDialog}
           showWinDialog={showWinDialog}
           isBigWin={isBigWin}
-          winMultiplier={Math.floor(totalWinnings / (baseBet * betMultiplier))}
+          winMultiplier={Math.floor(totalWinnings / baseBet)}
           totalWinAmount={totalWinnings}
+          hasWildBonus={hasWildBonus}
           onLoseDialogClose={() => setShowLoseDialog(false)}
           onWinDialogClose={() => setShowWinDialog(false)}
         />
