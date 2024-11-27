@@ -11,7 +11,7 @@ interface PaylineCheckResult {
 }
 
 export const handlePaylineCheck = (
-  payline: number[][],
+  payline: [number, number][],
   grid: Cell[][],
   baseBet: number,
   betMultiplier: number
@@ -51,7 +51,8 @@ export const handlePaylineCheck = (
     while (j < symbols.length && 
            (symbols[j] === symbolToMatch || symbols[j] === GAME_PIECES.WILD)) {
       matchCount++;
-      currentMatchedPositions.push(validPositions[j]);
+      // Ensure we're pushing a tuple of [number, number]
+      currentMatchedPositions.push([validPositions[j][0], validPositions[j][1]]);
       j++;
     }
 
