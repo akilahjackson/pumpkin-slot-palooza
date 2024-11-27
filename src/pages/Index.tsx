@@ -56,7 +56,10 @@ const Index = () => {
         </Button>
       </div>
 
-      <Badge variant="secondary" className="px-4 py-2 text-lg bg-amber-900/50">
+      <Badge 
+        variant="secondary" 
+        className="px-4 py-2 text-lg bg-white/50 backdrop-blur-sm"
+      >
         Total Winnings: {totalWinnings.toFixed(3)} SOL
       </Badge>
 
