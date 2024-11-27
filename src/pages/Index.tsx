@@ -5,6 +5,7 @@ import { Slider } from "@/components/ui/slider";
 import GameGrid from "@/components/GameGrid";
 import { Volume2, VolumeX } from "lucide-react";
 import { audioManager } from "@/utils/audio";
+import HowToWinDialog from "@/components/HowToWinDialog";
 
 const Index = () => {
   const [betMultiplier, setBetMultiplier] = useState(1);
@@ -13,10 +14,7 @@ const Index = () => {
   const baseBet = 0.01;
 
   useEffect(() => {
-    // Start background music as soon as the component mounts
     audioManager.playBackgroundMusic();
-    
-    // Cleanup on unmount
     return () => {
       audioManager.stopAllSoundEffects();
     };
@@ -45,7 +43,8 @@ const Index = () => {
         backgroundRepeat: 'no-repeat'
       }}
     >
-      <div className="absolute top-4 right-4">
+      <div className="absolute top-4 right-4 flex gap-2">
+        <HowToWinDialog />
         <Button
           variant="ghost"
           size="icon"
