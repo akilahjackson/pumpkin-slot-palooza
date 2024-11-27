@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import GamePiece from "./GamePiece";
 import { audioManager } from "@/utils/audio";
 import { handlePaylineCheck } from "@/utils/paylineUtils";
+import WinningDialog from "./WinningDialog";
 
 interface GameGridProps {
   betMultiplier: number;
@@ -17,6 +18,7 @@ interface GameGridProps {
 const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   const [grid, setGrid] = useState<Cell[][]>([]);
   const [isSpinning, setIsSpinning] = useState(false);
+  const [showLoseDialog, setShowLoseDialog] = useState(false);
   const baseBet = 0.01;
   const [hasWinningCombination, setHasWinningCombination] = useState(false);
 
@@ -38,8 +40,9 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     
     setIsSpinning(true);
     setHasWinningCombination(false);
+    setShowLoseDialog(false);
     audioManager.stopAllSoundEffects();
-    audioManager.playBackgroundMusic(); // Reset and play background music on spin
+    audioManager.playBackgroundMusic();
     
     onWinningsUpdate(-(baseBet * betMultiplier));
     console.log('Bet deducted:', -(baseBet * betMultiplier));
@@ -76,7 +79,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
         
         if (!hasWinningCombination) {
           setHasWinningCombination(true);
-          audioManager.stopBackgroundMusic(); // Stop background music before playing win sound
+          audioManager.stopBackgroundMusic();
           audioManager.playWinSound();
         }
 
@@ -89,8 +92,12 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     });
 
     if (!hasMatches) {
-      audioManager.stopBackgroundMusic(); // Stop background music before playing lose sound
+      audioManager.stopBackgroundMusic();
       audioManager.playLoseSound();
+      setShowLoseDialog(true);
+      setTimeout(() => {
+        setShowLoseDialog(false);
+      }, 3000);
     }
 
     if (hasMatches) {
@@ -181,6 +188,13 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
         >
           {isSpinning ? "Spinning..." : "Spin"}
         </Button>
+
+        <WinningDialog
+          isOpen={showLoseDialog}
+          onClose={() => setShowLoseDialog(false)}
+          message="Better luck next time! Keep spinning for a chance to win big! 🍀"
+          emoji="🎰"
+        />
       </div>
     </Card>
   );
