@@ -96,7 +96,6 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       audioManager.playLoseSound();
       setShowLoseDialog(true);
       setIsSpinning(false);
-      setIsDisplayingWin(false);
     } else {
       console.log('Matches found! Displaying win');
       audioManager.stopBackgroundMusic();
@@ -112,7 +111,11 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       
       setGrid(result.updatedGrid);
       triggerWinningEffects();
-      setIsSpinning(false);
+      
+      // Delay setting isSpinning to false to allow animations to complete
+      setTimeout(() => {
+        setIsSpinning(false);
+      }, 500);
     }
   };
 
@@ -140,11 +143,13 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       return;
     }
 
-    const gridWithKeys = newGrid.map(row => 
-      row.map(cell => ({
+    // Add dropping animation flag to each cell
+    const gridWithKeys = newGrid.map((row, rowIndex) => 
+      row.map((cell, colIndex) => ({
         ...cell,
         key: `${Date.now()}-${Math.random()}`,
-        isDropping: true
+        isDropping: true,
+        dropDelay: (rowIndex * GRID_SIZE + colIndex) * 100 // 100ms delay per piece
       }))
     );
     
@@ -156,7 +161,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     const totalDelay = totalPieces * pieceDelay;
     
     console.log(`Setting timeout for ${totalDelay}ms before checking paylines`);
-    setTimeout(checkPaylines, totalDelay);
+    setTimeout(checkPaylines, totalDelay + 500); // Add extra 500ms buffer for animations
   };
 
   return (

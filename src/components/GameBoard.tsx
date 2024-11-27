@@ -14,14 +14,15 @@ const GameBoard = ({ grid, isInitialLoad }: GameBoardProps) => {
   useEffect(() => {
     if (!grid || grid.length === 0) return;
 
+    // Initialize visiblePieces array with correct dimensions
+    const newVisiblePieces = Array(grid.length)
+      .fill(false)
+      .map(() => Array(grid[0].length).fill(false));
+    
+    setVisiblePieces(newVisiblePieces);
+
     // Only animate pieces on initial load
     if (isInitialLoad) {
-      const newVisiblePieces = Array(grid.length)
-        .fill(false)
-        .map(() => Array(grid[0].length).fill(false));
-      
-      setVisiblePieces(newVisiblePieces);
-
       grid.forEach((row, i) => {
         row.forEach((_, j) => {
           setTimeout(() => {
@@ -48,12 +49,13 @@ const GameBoard = ({ grid, isInitialLoad }: GameBoardProps) => {
       {grid.map((row, i) =>
         row.map((cell, j) => (
           <div key={cell.key} className="cell">
-            {(!isInitialLoad || visiblePieces[i]?.[j]) && (
+            {(!isInitialLoad || (visiblePieces[i] && visiblePieces[i][j])) && (
               <GamePiece
                 type={PUMPKIN_TYPES[cell.type]}
                 isMatched={cell.matched}
                 isSelected={false}
                 isDropping={cell.isDropping}
+                dropDelay={cell.dropDelay}
               />
             )}
           </div>

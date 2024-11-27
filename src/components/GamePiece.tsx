@@ -6,13 +6,18 @@ interface GamePieceProps {
   isMatched: boolean;
   isSelected: boolean;
   isDropping: boolean;
+  dropDelay?: number;
 }
 
-const GamePiece = ({ type, isMatched, isSelected, isDropping }: GamePieceProps) => {
+const GamePiece = ({ type, isMatched, isSelected, isDropping, dropDelay = 0 }: GamePieceProps) => {
   const isWild = type === PUMPKIN_TYPES[GAME_PIECES.WILD];
+  const style = {
+    animationDelay: isDropping ? `${dropDelay}ms` : '0ms'
+  };
 
   return (
     <div
+      style={style}
       className={cn(
         "relative w-full h-full flex items-center justify-center",
         "rounded-lg transition-all duration-300",
