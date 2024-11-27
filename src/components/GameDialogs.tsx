@@ -7,6 +7,7 @@ interface GameDialogsProps {
   isBigWin: boolean;
   winMultiplier?: number;
   totalWinAmount?: number;
+  hasWildBonus?: boolean;
   onLoseDialogClose: () => void;
   onWinDialogClose: () => void;
 }
@@ -17,6 +18,7 @@ const GameDialogs = ({
   isBigWin,
   winMultiplier = 0,
   totalWinAmount = 0,
+  hasWildBonus = false,
   onLoseDialogClose,
   onWinDialogClose
 }: GameDialogsProps) => {
