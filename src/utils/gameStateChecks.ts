@@ -67,7 +67,6 @@ export const checkGameState = (
     }
   });
 
-  // Convert Set back to array of tuples with explicit typing
   const uniqueMatchedPositions: [number, number][] = Array.from(matchedPositionsSet)
     .map(pos => {
       const [row, col] = pos.split(',').map(Number);
