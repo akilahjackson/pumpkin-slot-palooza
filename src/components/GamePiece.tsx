@@ -27,7 +27,7 @@ const GamePiece = ({ type, isMatched, isSelected, isDropping, dropDelay = 0 }: G
         "bg-amber-900/20 backdrop-blur-sm",
         isSelected && "ring-2 ring-amber-400",
         !isMatched && isDropping && "animate-piece-drop",
-        !isMatched && !isDropping && "animate-fade-in-down"
+        !isMatched && !isDropping && "animate-piece-enter"
       )}
     >
       <span 

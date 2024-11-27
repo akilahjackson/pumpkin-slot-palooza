@@ -76,11 +76,12 @@ export const useGameState = (
     } else {
       console.log('Matches found! Displaying win');
       
-      // Important: Create a new grid with matched positions preserved
+      // Create a new grid that preserves the matched states from result
       const updatedGrid = grid.map((row, i) => 
         row.map((cell, j) => ({
           ...cell,
-          matched: result.updatedGrid[i][j].matched
+          matched: result.updatedGrid[i][j].matched,
+          isDropping: false // Stop dropping animation when showing matches
         }))
       );
       
