@@ -69,16 +69,6 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     frame();
   };
 
-  const initializeGrid = () => {
-    console.log('Initializing grid - isInitialLoad:', isInitialLoad);
-    const newGrid = createInitialGrid();
-    if (!newGrid || newGrid.length === 0) {
-      console.error('Failed to create initial grid');
-      return;
-    }
-    setGrid(newGrid);
-  };
-
   const resetGameState = () => {
     setShowLoseDialog(false);
     setShowWinDialog(false);
@@ -91,11 +81,10 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   const checkPaylines = () => {
     if (!grid || grid.length === 0) {
       console.error('Cannot check paylines: grid is empty');
+      setIsSpinning(false);
       return;
     }
 
-    if (isInitialLoad) return;
-    
     console.log('Checking paylines for current game pieces');
     const result = checkGameState(grid, baseBet, betMultiplier, onWinningsUpdate);
     
@@ -104,7 +93,6 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       audioManager.stopBackgroundMusic();
       audioManager.playLoseSound();
       setShowLoseDialog(true);
-      setIsSpinning(false);
     } else {
       console.log('Matches found! Displaying win');
       audioManager.stopBackgroundMusic();
@@ -112,7 +100,6 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       setIsDisplayingWin(true);
       setTotalWinnings(result.totalWinnings);
       setHasWildBonus(result.hasWildBonus);
-      setIsSpinning(false);
       
       if (result.isBigWin) {
         setIsBigWin(true);
@@ -121,6 +108,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       
       triggerWinningEffects();
     }
+    setIsSpinning(false);
   };
 
   const spin = async () => {
@@ -139,6 +127,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     const newGrid = createInitialGrid();
     if (!newGrid || newGrid.length === 0) {
       console.error('Failed to create new grid during spin');
+      setIsSpinning(false);
       return;
     }
 
@@ -157,9 +146,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     const totalDelay = (totalPieces * pieceDelay) + extraDelay;
 
     console.log(`Setting timeout for ${totalDelay}ms before checking paylines`);
-    setTimeout(() => {
-      checkPaylines();
-    }, totalDelay);
+    setTimeout(checkPaylines, totalDelay);
   };
 
   return (
