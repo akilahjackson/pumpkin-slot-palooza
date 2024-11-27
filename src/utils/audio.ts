@@ -53,6 +53,13 @@ class AudioManager {
       this.loseSound.play().catch(console.error);
     }
   }
+
+  stopAllSoundEffects() {
+    this.winSound.pause();
+    this.winSound.currentTime = 0;
+    this.loseSound.pause();
+    this.loseSound.currentTime = 0;
+  }
 }
 
 export const audioManager = AudioManager.getInstance();

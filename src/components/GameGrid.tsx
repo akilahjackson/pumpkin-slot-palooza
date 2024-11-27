@@ -41,6 +41,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     if (isSpinning) return;
     
     setIsSpinning(true);
+    audioManager.stopAllSoundEffects();
     
     // Deduct bet amount before spin
     onWinningsUpdate(-(baseBet * betMultiplier));
