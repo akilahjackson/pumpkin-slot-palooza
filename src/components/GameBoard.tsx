@@ -9,14 +9,18 @@ interface GameBoardProps {
 }
 
 const GameBoard = ({ grid, isInitialLoad }: GameBoardProps) => {
-  const [visiblePieces, setVisiblePieces] = useState<boolean[][]>(
-    Array(grid.length).fill(null).map(() => Array(grid[0].length).fill(false))
-  );
+  const [visiblePieces, setVisiblePieces] = useState<boolean[][]>([]);
 
   useEffect(() => {
-    // Reset visibility when grid changes
-    setVisiblePieces(Array(grid.length).fill(null).map(() => Array(grid[0].length).fill(false)));
+    if (!grid || grid.length === 0) return;
+
+    // Initialize visibility matrix with the same dimensions as the grid
+    const newVisiblePieces = Array(grid.length)
+      .fill(false)
+      .map(() => Array(grid[0].length).fill(false));
     
+    setVisiblePieces(newVisiblePieces);
+
     // Show pieces one by one with delays
     grid.forEach((row, i) => {
       row.forEach((_, j) => {
@@ -26,17 +30,21 @@ const GameBoard = ({ grid, isInitialLoad }: GameBoardProps) => {
             newVisible[i][j] = true;
             return newVisible;
           });
-        }, (i * grid[0].length + j) * 100); // 100ms delay between each piece
+        }, (i * grid[0].length + j) * 100);
       });
     });
   }, [grid]);
+
+  if (!grid || grid.length === 0) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="game-grid">
       {grid.map((row, i) =>
         row.map((cell, j) => (
           <div key={cell.key} className="cell">
-            {visiblePieces[i][j] && (
+            {visiblePieces[i]?.[j] && (
               <GamePiece
                 type={PUMPKIN_TYPES[cell.type]}
                 isMatched={!isInitialLoad && cell.matched}

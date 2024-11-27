@@ -29,7 +29,10 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   const baseBet = 0.01;
 
   useEffect(() => {
-    initializeGrid();
+    const initialGrid = createInitialGrid();
+    console.log('Initializing grid with dimensions:', initialGrid.length, 'x', initialGrid[0]?.length);
+    setGrid(initialGrid);
+    
     toast({
       title: "Welcome to Harvest Slots! 🎮",
       description: "Place your bet and click Spin to start playing!",
@@ -69,6 +72,10 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   const initializeGrid = () => {
     console.log('Initializing grid - isInitialLoad:', isInitialLoad);
     const newGrid = createInitialGrid();
+    if (!newGrid || newGrid.length === 0) {
+      console.error('Failed to create initial grid');
+      return;
+    }
     setGrid(newGrid);
   };
 
@@ -82,6 +89,11 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   };
 
   const checkPaylines = () => {
+    if (!grid || grid.length === 0) {
+      console.error('Cannot check paylines: grid is empty');
+      return;
+    }
+
     if (isInitialLoad) return;
     
     console.log('Checking paylines for current game pieces');
@@ -124,14 +136,20 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     onWinningsUpdate(-(baseBet * betMultiplier));
     console.log('Bet deducted:', -(baseBet * betMultiplier));
     
-    const newGrid = createInitialGrid().map(row => 
+    const newGrid = createInitialGrid();
+    if (!newGrid || newGrid.length === 0) {
+      console.error('Failed to create new grid during spin');
+      return;
+    }
+
+    const gridWithKeys = newGrid.map(row => 
       row.map(cell => ({
         ...cell,
         key: `${Date.now()}-${Math.random()}`,
         isDropping: true
       }))
     );
-    setGrid(newGrid);
+    setGrid(gridWithKeys);
 
     const totalPieces = GRID_SIZE * GRID_SIZE;
     const pieceDelay = 100;
