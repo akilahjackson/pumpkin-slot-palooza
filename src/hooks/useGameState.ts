@@ -55,27 +55,18 @@ export const useGameState = (
     console.log('💰 Win amount:', result.totalWinnings);
     console.log('🎲 Matched positions:', result.matchedPositions);
     
-    setGrid(prevGrid => {
-      const updatedGrid = prevGrid.map((row, i) => 
-        row.map((cell, j) => ({
-          ...cell,
-          matched: result.updatedGrid[i][j].matched
-        }))
-      );
-      console.log('Updated grid with matches:', updatedGrid);
-      return updatedGrid;
-    });
+    setGrid(result.updatedGrid);
     
     audioManager.stopBackgroundMusic();
     audioManager.playWinSound();
     
     setTotalWinnings(result.totalWinnings);
     setHasWildBonus(result.hasWildBonus);
+    setShowWinDialog(true);
     
     if (result.isBigWin) {
       console.log('🌟 Big win detected!');
       setIsBigWin(true);
-      setShowWinDialog(true);
       toast({
         title: "Big Win! 🎰",
         description: `You won ${result.totalWinnings.toFixed(3)} SOL!`,

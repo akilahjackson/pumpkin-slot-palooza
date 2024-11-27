@@ -23,7 +23,7 @@ export const checkGameState = (
   let totalWinnings = 0;
   let hasWildBonus = false;
   let highestMultiplier = 0;
-  const allMatchedPositions = new Set<string>();
+  const matchedPositionsSet = new Set<string>();
   
   // Create a new grid with all matches reset
   const updatedGrid = grid.map(row =>
@@ -51,7 +51,7 @@ export const checkGameState = (
       // Mark matched positions in the grid
       result.matchedPositions.forEach(([row, col]) => {
         updatedGrid[row][col].matched = true;
-        allMatchedPositions.add(`${row},${col}`);
+        matchedPositionsSet.add(`${row},${col}`);
       });
       
       if (result.hasWild) {
@@ -65,18 +65,22 @@ export const checkGameState = (
   });
   
   // Convert matched positions set back to array of tuples
-  const matchedPositions: [number, number][] = Array.from(allMatchedPositions)
+  const matchedPositions: [number, number][] = Array.from(matchedPositionsSet)
     .map(pos => pos.split(',').map(Number) as [number, number]);
   
-  console.log('\n📊 Game Check Summary:', {
-    totalWin: totalWinnings,
-    matchCount: matchedPositions.length,
-    highestMultiplier,
-    hasWildBonus
-  });
+  const hasMatches = matchedPositions.length > 0;
+  
+  if (hasMatches) {
+    console.log('\n🎯 Win detected:', {
+      totalWinnings,
+      matchCount: matchedPositions.length,
+      hasWildBonus
+    });
+    onWinningsUpdate(totalWinnings);
+  }
   
   return {
-    hasMatches: matchedPositions.length > 0,
+    hasMatches,
     totalWinnings,
     isBigWin: highestMultiplier >= 50,
     hasWildBonus,

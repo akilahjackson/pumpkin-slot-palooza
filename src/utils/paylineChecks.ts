@@ -45,7 +45,6 @@ export const checkPaylineMatch = (
   let matchCount = 1;
   let hasWild = symbols[0] === GAME_PIECES.WILD;
   let matchedPositions: [number, number][] = [payline[0]];
-  let currentSequence: [number, number][] = [payline[0]];
   
   // Check consecutive matches starting from the first position
   for (let i = 1; i < symbols.length; i++) {
@@ -54,29 +53,35 @@ export const checkPaylineMatch = (
     
     if (isMatch) {
       matchCount++;
-      currentSequence.push(payline[i]);
+      matchedPositions.push(payline[i]);
       if (currentSymbol === GAME_PIECES.WILD) {
         hasWild = true;
       }
     } else {
-      // Break if we hit a non-matching symbol
-      break;
+      break; // Break on first non-match
     }
   }
   
-  // Only use the sequence if it forms a valid win (3 or more matches)
-  matchedPositions = matchCount >= 3 ? currentSequence : [];
-  
-  console.log(`Match count: ${matchCount}, Has wild: ${hasWild}`);
-  console.log('Matched positions:', matchedPositions);
-  
+  // Only count as a win if we have 3 or more matches
   const isWinningSequence = matchCount >= 3;
-  const winMultiplier = hasWild ? 2 : 1;
-  const winnings = isWinningSequence ? matchCount * winMultiplier : 0;
+  matchedPositions = isWinningSequence ? matchedPositions : [];
+  
+  // Calculate winnings based on match count and wild multiplier
+  const baseWinnings = isWinningSequence ? matchCount : 0;
+  const wildMultiplier = hasWild ? 2 : 1;
+  const totalWinnings = baseWinnings * wildMultiplier;
+  
+  console.log(`Match summary for payline ${paylineIndex}:`, {
+    matchCount,
+    hasWild,
+    isWinningSequence,
+    totalWinnings,
+    matchedPositions
+  });
   
   return {
     hasMatches: isWinningSequence,
-    winnings,
+    winnings: totalWinnings,
     hasWild,
     matchedPositions,
     symbolCombination: `${matchCount}x ${PUMPKIN_TYPES[baseSymbol]}${hasWild ? ' with WILD' : ''}`,
