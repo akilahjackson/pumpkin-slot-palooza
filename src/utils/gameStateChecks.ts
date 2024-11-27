@@ -32,12 +32,12 @@ export const checkGameState = (
   let totalWinnings = 0;
   let highestMultiplier = 0;
   let hasWildBonus = false;
-  const allMatchedPositions: [number, number][] = [];
+  const allMatchedPositions = new Set<string>();
   const paylineResults: PaylineCheckResult[] = [];
 
   // Check each payline
   PAYLINES.forEach((payline, index) => {
-    const result = checkPaylineMatch(payline as [number, number][], newGrid, index);
+    const result = checkPaylineMatch(payline, newGrid, index);
     paylineResults.push(result);
 
     if (result.hasMatches) {
@@ -52,14 +52,11 @@ export const checkGameState = (
       
       onWinningsUpdate(winAmount);
 
-      // Mark matched positions on grid
+      // Mark matched positions on grid and add to unique set
       result.matchedPositions.forEach(([row, col]) => {
         if (newGrid[row] && newGrid[row][col]) {
           newGrid[row][col].matched = true;
-          // Only add position if it's not already in the array
-          if (!allMatchedPositions.some(([r, c]) => r === row && c === col)) {
-            allMatchedPositions.push([row, col]);
-          }
+          allMatchedPositions.add(`${row},${col}`);
         }
       });
 
@@ -73,24 +70,28 @@ export const checkGameState = (
     }
   });
 
-  const snapshot = createGameStateSnapshot(grid, allMatchedPositions);
+  // Convert Set back to array of positions
+  const uniqueMatchedPositions: [number, number][] = Array.from(allMatchedPositions)
+    .map(pos => pos.split(',').map(Number) as [number, number]);
+
+  const snapshot = createGameStateSnapshot(grid, uniqueMatchedPositions);
   
   console.log('\n📊 Game Check Summary:', {
     totalWin: totalWinnings,
-    matchCount: allMatchedPositions.length,
+    matchCount: uniqueMatchedPositions.length,
     highestMultiplier,
     hasWildBonus,
     verificationId: snapshot.verificationId
   });
 
   return {
-    hasMatches: allMatchedPositions.length > 0,
+    hasMatches: uniqueMatchedPositions.length > 0,
     totalWinnings,
     isBigWin: highestMultiplier >= 50,
     hasWildBonus,
     highestMultiplier,
     updatedGrid: newGrid,
-    matchedPositions: allMatchedPositions,
+    matchedPositions: uniqueMatchedPositions,
     verificationDetails: {
       id: snapshot.verificationId,
       timestamp: snapshot.timestamp,

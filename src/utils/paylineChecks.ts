@@ -15,93 +15,106 @@ const isWildSymbol = (cell: Cell): boolean => {
   return cell.type === GAME_PIECES.WILD;
 };
 
-const getBaseSymbol = (cells: Cell[], startIdx: number): number | null => {
-  // Find the first non-wild symbol to use as base for matching
-  for (let i = startIdx; i < cells.length; i++) {
-    if (!isWildSymbol(cells[i])) {
-      return cells[i].type;
-    }
-  }
-  return null; // All wilds case
-};
-
 export const checkPaylineMatch = (
   payline: [number, number][],
   grid: Cell[][],
   paylineIndex: number
 ): PaylineCheckResult => {
-  console.log(`\n🔍 Checking payline ${paylineIndex}`);
+  console.log(`\n🔍 Checking payline ${paylineIndex}:`, payline);
   const verificationId = generateVerificationId();
 
-  // Extract cells from grid based on payline positions
-  const cells = payline.map(([row, col]) => grid[row][col]);
-  
-  let bestMatch = {
+  // Extract cells for this payline
+  const cells = payline.map(([row, col]) => ({
+    cell: grid[row][col],
+    position: [row, col] as [number, number]
+  }));
+
+  let currentRun = {
     length: 0,
-    startIndex: 0,
-    hasWild: false,
     positions: [] as [number, number][],
-    symbol: -1
+    hasWild: false,
+    baseSymbol: -1
   };
 
-  // Check each possible starting position
-  for (let startIdx = 0; startIdx < cells.length - 2; startIdx++) {
-    const baseSymbol = getBaseSymbol(cells, startIdx);
-    if (baseSymbol === null) continue;
+  let bestRun = {
+    length: 0,
+    positions: [] as [number, number][],
+    hasWild: false,
+    baseSymbol: -1
+  };
 
-    let currentMatch = {
-      length: 0,
-      positions: [] as [number, number][],
-      hasWild: false
-    };
+  // Check each position in the payline
+  for (let i = 0; i < cells.length; i++) {
+    const { cell, position } = cells[i];
+    const isWild = isWildSymbol(cell);
+    
+    console.log(`Checking position [${position}], symbol: ${cell.type}, isWild: ${isWild}`);
 
-    // Check consecutive positions from this start
-    for (let i = startIdx; i < cells.length; i++) {
-      const cell = cells[i];
-      const isWild = isWildSymbol(cell);
-      
-      // Check if this cell continues the match
-      if (isWild || cell.type === baseSymbol) {
-        currentMatch.length++;
-        currentMatch.positions.push(payline[i]);
-        currentMatch.hasWild = currentMatch.hasWild || isWild;
-      } else {
-        break; // Stop on first non-match
-      }
+    // Start new run
+    if (currentRun.length === 0) {
+      currentRun.length = 1;
+      currentRun.positions = [position];
+      currentRun.hasWild = isWild;
+      currentRun.baseSymbol = isWild ? -1 : cell.type;
+      continue;
     }
 
-    // Update best match if this is better
-    if (currentMatch.length >= 3 && currentMatch.length > bestMatch.length) {
-      bestMatch = {
-        length: currentMatch.length,
-        startIndex: startIdx,
-        hasWild: currentMatch.hasWild,
-        positions: currentMatch.positions,
-        symbol: baseSymbol
+    // Check if current cell continues the run
+    const matchesRun = isWild || 
+      cell.type === currentRun.baseSymbol || 
+      (currentRun.baseSymbol === -1 && !isWild);
+
+    if (matchesRun) {
+      // Update base symbol if it was previously undefined (all wilds)
+      if (currentRun.baseSymbol === -1 && !isWild) {
+        currentRun.baseSymbol = cell.type;
+      }
+      
+      currentRun.length++;
+      currentRun.positions.push(position);
+      currentRun.hasWild = currentRun.hasWild || isWild;
+    } else {
+      // Save current run if it's better than best run
+      if (currentRun.length >= 3 && currentRun.length > bestRun.length) {
+        bestRun = { ...currentRun };
+      }
+      
+      // Start new run with current cell
+      currentRun = {
+        length: 1,
+        positions: [position],
+        hasWild: isWild,
+        baseSymbol: isWild ? -1 : cell.type
       };
     }
   }
 
+  // Check final run
+  if (currentRun.length >= 3 && currentRun.length > bestRun.length) {
+    bestRun = { ...currentRun };
+  }
+
   // Calculate winnings based on match length
-  const baseWinnings = bestMatch.length >= 3 ? bestMatch.length : 0;
-  const wildMultiplier = bestMatch.hasWild ? 2 : 1;
+  const baseWinnings = bestRun.length >= 3 ? bestRun.length : 0;
+  const wildMultiplier = bestRun.hasWild ? 2 : 1;
   const totalWinnings = baseWinnings * wildMultiplier;
 
-  console.log(`Payline ${paylineIndex} results:`, {
-    matchLength: bestMatch.length,
-    hasWild: bestMatch.hasWild,
-    positions: bestMatch.positions,
-    symbol: bestMatch.symbol,
+  console.log('Payline check result:', {
+    paylineIndex,
+    matchLength: bestRun.length,
+    hasWild: bestRun.hasWild,
+    positions: bestRun.positions,
+    baseSymbol: bestRun.baseSymbol,
     winnings: totalWinnings
   });
 
   return {
-    hasMatches: bestMatch.length >= 3,
+    hasMatches: bestRun.length >= 3,
     winnings: totalWinnings,
-    hasWild: bestMatch.hasWild,
-    matchedPositions: bestMatch.positions,
-    symbolCombination: bestMatch.length >= 3 ? 
-      `${bestMatch.length}x ${bestMatch.symbol} ${bestMatch.hasWild ? '(with WILD)' : ''}` : 
+    hasWild: bestRun.hasWild,
+    matchedPositions: bestRun.positions,
+    symbolCombination: bestRun.length >= 3 ? 
+      `${bestRun.length}x ${bestRun.baseSymbol} ${bestRun.hasWild ? '(with WILD)' : ''}` : 
       'No matches',
     verificationId
   };
