@@ -38,7 +38,7 @@ export const checkGameState = (
   let highestMultiplier = 0;
   let hasWildBonus = false;
   let hasMatches = false;
-  let allMatchedPositions: [number, number][] = [];
+  const allMatchedPositions: [number, number][] = [];
 
   PAYLINES.forEach((payline, index) => {
     console.log(`Checking payline ${index}:`, payline);
@@ -53,9 +53,9 @@ export const checkGameState = (
       if (result.matchedPositions) {
         // Ensure positions are properly typed as tuples
         const typedPositions: [number, number][] = result.matchedPositions.map(
-          ([row, col]): [number, number] => [row, col]
+          pos => [pos[0], pos[1]] as [number, number]
         );
-        allMatchedPositions = [...allMatchedPositions, ...typedPositions];
+        allMatchedPositions.push(...typedPositions);
         
         typedPositions.forEach(([row, col]) => {
           if (newGrid[row] && newGrid[row][col]) {
