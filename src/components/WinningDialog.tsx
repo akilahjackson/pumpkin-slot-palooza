@@ -7,7 +7,7 @@ interface WinningDialogProps {
   isOpen: boolean;
   onClose: () => void;
   message: string;
-  emoji?: string;
+  emoji?: React.ReactNode;
 }
 
 const WinningDialog = ({ 
