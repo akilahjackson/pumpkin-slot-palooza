@@ -55,6 +55,15 @@ export const useGameState = (
     setShowWinDialog(false);
     setIsBigWin(false);
     setHasWildBonus(false);
+    // Reset matched state for all cells
+    setGrid(prevGrid => 
+      prevGrid.map(row => 
+        row.map(cell => ({
+          ...cell,
+          matched: false
+        }))
+      )
+    );
   };
 
   const checkPaylines = async () => {
@@ -68,17 +77,6 @@ export const useGameState = (
     const result = checkGameState(grid, baseBet, betMultiplier, onWinningsUpdate);
     console.log('Game state check result:', result);
     
-    // Update grid with matched positions
-    const newGrid = grid.map(row => row.map(cell => ({...cell, matched: false})));
-    if (result.hasMatches && result.updatedGrid) {
-      result.updatedGrid.forEach((row, i) => {
-        row.forEach((cell, j) => {
-          newGrid[i][j].matched = cell.matched;
-        });
-      });
-      setGrid(newGrid);
-    }
-    
     if (!result.hasMatches) {
       console.log('No matches found');
       audioManager.stopBackgroundMusic();
@@ -86,6 +84,9 @@ export const useGameState = (
       setShowLoseDialog(true);
     } else {
       console.log('Matches found! Displaying win');
+      // Update grid with matched positions
+      setGrid(result.updatedGrid);
+      
       audioManager.stopBackgroundMusic();
       audioManager.playWinSound();
       setTotalWinnings(result.totalWinnings);
@@ -139,7 +140,6 @@ export const useGameState = (
     const totalDelay = totalPieces * pieceDelay;
     
     console.log(`Setting timeout for ${totalDelay}ms before checking paylines`);
-    // Use setTimeout to ensure animations complete before checking paylines
     setTimeout(() => {
       checkPaylines();
     }, totalDelay + 500);
