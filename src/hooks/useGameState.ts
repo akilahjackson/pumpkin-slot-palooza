@@ -76,17 +76,16 @@ export const useGameState = (
     } else {
       console.log('Matches found! Displaying win');
       
-      // Create a new grid with updated matched states while preserving cell references
-      const updatedGrid = grid.map((row, i) => 
-        row.map((cell, j) => ({
-          ...cell,
-          matched: result.updatedGrid[i][j].matched,
-          isDropping: false
-        }))
-      );
+      // Directly update matched states in the existing grid
+      grid.forEach((row, i) => {
+        row.forEach((cell, j) => {
+          cell.matched = result.updatedGrid[i][j].matched;
+          cell.isDropping = false;
+        });
+      });
       
-      // Update the grid with matched pieces
-      setGrid(updatedGrid);
+      // Force a re-render while keeping the same grid reference
+      setGrid([...grid]);
       
       audioManager.stopBackgroundMusic();
       audioManager.playWinSound();
@@ -121,7 +120,6 @@ export const useGameState = (
     
     onWinningsUpdate(-(baseBet * betMultiplier));
     
-    // Create new grid with dropping pieces
     const timestamp = Date.now();
     const newGrid = createInitialGrid().map((row, rowIndex) => 
       row.map((cell, colIndex) => ({
@@ -136,7 +134,6 @@ export const useGameState = (
     console.log('Generated new grid:', newGrid);
     setGrid(newGrid);
     
-    // Wait for pieces to finish dropping before checking paylines
     const totalPieces = GRID_SIZE * GRID_SIZE;
     const pieceDelay = 100;
     const totalDelay = totalPieces * pieceDelay;
