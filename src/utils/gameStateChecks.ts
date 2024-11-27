@@ -21,8 +21,8 @@ interface GameCheckResult {
 }
 
 // Type guard to ensure we have a valid position tuple
-function isValidPositionTuple(arr: number[]): arr is [number, number] {
-  return arr.length === 2 && !isNaN(arr[0]) && !isNaN(arr[1]);
+function isValidPositionTuple(pos: number[]): pos is [number, number] {
+  return pos.length === 2 && typeof pos[0] === 'number' && typeof pos[1] === 'number';
 }
 
 export const checkGameState = (
@@ -73,8 +73,11 @@ export const checkGameState = (
   });
 
   // Convert positions with validation and ensure type safety
-  const validPositions = Array.from(matchedPositionsSet)
-    .map(pos => pos.split(',').map(Number))
+  const rawPositions = Array.from(matchedPositionsSet)
+    .map(pos => pos.split(',').map(Number));
+  
+  // Explicitly validate and type the positions
+  const validPositions: [number, number][] = rawPositions
     .filter(isValidPositionTuple);
 
   const snapshot = createGameStateSnapshot(grid, validPositions);
@@ -100,7 +103,7 @@ export const checkGameState = (
       timestamp: snapshot.timestamp,
       paylineResults,
       totalPayout: totalWinnings,
-      gridSnapshot: snapshot.gridState
+      gridSnapshot: snapshot.gridSnapshot
     }
   };
 };
