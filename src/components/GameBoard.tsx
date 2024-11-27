@@ -5,9 +5,10 @@ import { useEffect, useState } from "react";
 
 interface GameBoardProps {
   grid: Cell[][];
+  isInitialLoad: boolean;
 }
 
-const GameBoard = ({ grid }: GameBoardProps) => {
+const GameBoard = ({ grid, isInitialLoad }: GameBoardProps) => {
   const [visiblePieces, setVisiblePieces] = useState<boolean[][]>(
     Array(grid.length).fill(null).map(() => Array(grid[0].length).fill(false))
   );
@@ -38,7 +39,7 @@ const GameBoard = ({ grid }: GameBoardProps) => {
             {visiblePieces[i][j] && (
               <GamePiece
                 type={PUMPKIN_TYPES[cell.type]}
-                isMatched={cell.matched}
+                isMatched={!isInitialLoad && cell.matched}
                 isSelected={false}
                 isDropping={cell.isDropping}
               />

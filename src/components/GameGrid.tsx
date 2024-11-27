@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { GRID_SIZE } from "../utils/gameConstants";
 import { Cell } from "../utils/gameTypes";
 import { createInitialGrid } from "../utils/gameLogic";
@@ -9,6 +9,7 @@ import GameBoard from "./GameBoard";
 import GameControls from "./GameControls";
 import confetti from 'canvas-confetti';
 import { checkGameState } from "@/utils/gameStateChecks";
+import { toast } from "@/components/ui/use-toast";
 
 interface GameGridProps {
   betMultiplier: number;
@@ -24,6 +25,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   const [isDisplayingWin, setIsDisplayingWin] = useState(false);
   const [totalWinnings, setTotalWinnings] = useState(0);
   const [hasWildBonus, setHasWildBonus] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const baseBet = 0.01;
 
   const triggerWinningEffects = () => {
@@ -56,10 +58,24 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   };
 
   const initializeGrid = () => {
+    console.log('Initializing grid - isInitialLoad:', isInitialLoad);
     const newGrid = createInitialGrid();
     setGrid(newGrid);
-    audioManager.playDropSound();
+    if (!isInitialLoad) {
+      audioManager.playDropSound();
+    }
   };
+
+  useEffect(() => {
+    if (isInitialLoad) {
+      initializeGrid();
+      toast({
+        title: "Welcome to the Game! 🎮",
+        description: "Place your bet and click Spin to start playing!",
+        duration: 5000,
+      });
+    }
+  }, [isInitialLoad]);
 
   const resetGameState = () => {
     setShowLoseDialog(false);
@@ -71,6 +87,8 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   };
 
   const checkPaylines = () => {
+    if (isInitialLoad) return;
+    
     const result = checkGameState(grid, baseBet, betMultiplier, onWinningsUpdate);
     console.log('Checking paylines for potential wins');
     
@@ -96,10 +114,8 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       
       triggerWinningEffects();
       
-      // Display winning paylines for 5 seconds before resetting
       setTimeout(() => {
         resetGameState();
-        // Create new grid after displaying wins
         const newGrid = createInitialGrid();
         setGrid(newGrid);
       }, 5000);
@@ -109,6 +125,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   const spin = async () => {
     if (isSpinning || isDisplayingWin) return;
     
+    setIsInitialLoad(false);
     setIsSpinning(true);
     setShowLoseDialog(false);
     setShowWinDialog(false);
@@ -118,7 +135,6 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     onWinningsUpdate(-(baseBet * betMultiplier));
     console.log('Bet deducted:', -(baseBet * betMultiplier));
     
-    // Create new grid with unique keys for each spin
     const newGrid = createInitialGrid().map(row => 
       row.map(cell => ({
         ...cell,
@@ -128,7 +144,6 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     );
     setGrid(newGrid);
 
-    // Wait for all pieces to appear plus extra delay before checking wins
     const totalPieces = GRID_SIZE * GRID_SIZE;
     const pieceDelay = 100; // 100ms delay between each piece
     const extraDelay = 1000; // Additional 1s delay before checking wins
@@ -149,7 +164,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   return (
     <Card className="bg-transparent border-amber-600/20 backdrop-blur-sm shadow-xl p-8">
       <div className="space-y-6">
-        <GameBoard grid={grid} />
+        <GameBoard grid={grid} isInitialLoad={isInitialLoad} />
         <GameControls onSpin={spin} isSpinning={isSpinning || isDisplayingWin} />
         <GameDialogs
           showLoseDialog={showLoseDialog}
