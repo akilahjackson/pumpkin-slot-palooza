@@ -133,23 +133,19 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     
     onWinningsUpdate(-(baseBet * betMultiplier));
     
-    const newGrid = createInitialGrid();
-    if (!newGrid || newGrid.length === 0) {
-      console.error('Failed to create new grid during spin');
-      setIsSpinning(false);
-      return;
-    }
-
-    const gridWithKeys = newGrid.map((row, rowIndex) => 
+    // Generate a completely new grid with unique keys
+    const timestamp = Date.now();
+    const newGrid = createInitialGrid().map((row, rowIndex) => 
       row.map((cell, colIndex) => ({
         ...cell,
-        key: `${Date.now()}-${Math.random()}`,
+        key: `${timestamp}-${rowIndex}-${colIndex}-${Math.random()}`,
         isDropping: true,
         dropDelay: (rowIndex * GRID_SIZE + colIndex) * 100
       }))
     );
     
-    setGrid(gridWithKeys);
+    console.log('Generated new grid:', newGrid);
+    setGrid(newGrid);
     
     const totalPieces = GRID_SIZE * GRID_SIZE;
     const pieceDelay = 100;
