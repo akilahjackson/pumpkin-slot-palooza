@@ -1,77 +1,60 @@
-import { useEffect, useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Slider } from "@/components/ui/slider";
 import GameGrid from "@/components/GameGrid";
-import WalletConnect from "@/components/WalletConnect";
-import { useWallet } from "@/hooks/useWallet";
 
 const Index = () => {
-  const { toast } = useToast();
-  const { wallet, balance, connectWallet } = useWallet();
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [betAmount, setBetAmount] = useState(0.01);
+  const [betMultiplier, setBetMultiplier] = useState(1);
+  const [totalWinnings, setTotalWinnings] = useState(0);
+  const baseBet = 0.01; // 0.01 SOL base bet
 
-  const handlePlay = async () => {
-    if (!wallet) {
-      toast({
-        title: "Connect Wallet",
-        description: "Please connect your wallet to play",
-        variant: "destructive",
-      });
-      return;
-    }
+  const handleMaxBet = () => {
+    setBetMultiplier(100);
+  };
 
-    if (balance < betAmount) {
-      toast({
-        title: "Insufficient Balance",
-        description: "You don't have enough SOL to place this bet",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsPlaying(true);
-    // Game logic will be implemented here
+  const handleWinningsUpdate = (winnings: number) => {
+    setTotalWinnings(prev => prev + winnings);
   };
 
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="flex justify-between items-center">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-casino-purple to-casino-orange bg-clip-text text-transparent">
-            Luna Casino
-          </h1>
-          <WalletConnect />
-        </div>
-
-        <Card className="p-6 bg-opacity-10 backdrop-blur-lg border-casino-purple/20">
-          <div className="space-y-6">
-            <GameGrid />
-            
-            <div className="flex justify-between items-center">
-              <div className="space-y-2">
-                <p className="text-sm text-gray-400">Bet Amount (SOL)</p>
-                <input
-                  type="number"
-                  value={betAmount}
-                  onChange={(e) => setBetAmount(Number(e.target.value))}
-                  min={0.01}
-                  step={0.01}
-                  className="bg-black/20 border border-casino-purple/20 rounded px-3 py-2 w-32"
-                />
-              </div>
-              
-              <Button
-                onClick={handlePlay}
-                disabled={!wallet || isPlaying}
-                className="bg-gradient-to-r from-casino-purple to-casino-orange hover:opacity-90 transition-opacity"
-              >
-                {isPlaying ? "Playing..." : "Play Now"}
-              </Button>
-            </div>
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 space-y-6">
+      <div className="flex flex-col items-center space-y-4">
+        <Badge variant="secondary" className="px-4 py-2 text-lg">
+          Total Winnings: {totalWinnings.toFixed(3)} SOL
+        </Badge>
+        
+        <div className="w-full max-w-md space-y-4 bg-amber-900/10 p-6 rounded-lg">
+          <div className="flex items-center justify-between">
+            <span className="text-amber-200">Current Bet: {(baseBet * betMultiplier).toFixed(3)} SOL</span>
+            <Button 
+              variant="outline" 
+              onClick={handleMaxBet}
+              className="bg-amber-600 hover:bg-amber-700 text-white border-none"
+            >
+              Max Bet
+            </Button>
           </div>
-        </Card>
+          
+          <div className="flex items-center space-x-4">
+            <Slider
+              value={[betMultiplier]}
+              onValueChange={(value) => setBetMultiplier(value[0])}
+              min={1}
+              max={100}
+              step={1}
+              className="flex-1"
+            />
+            <span className="min-w-[4rem] text-right text-amber-200">{betMultiplier}x</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="w-full max-w-2xl mx-auto">
+        <GameGrid 
+          betMultiplier={betMultiplier}
+          onWinningsUpdate={handleWinningsUpdate}
+        />
       </div>
     </div>
   );

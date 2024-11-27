@@ -1,31 +1,22 @@
 import { useEffect, useState } from "react";
 import { GRID_SIZE, PUMPKIN_TYPES, PAYLINES, GAME_PIECES, WILD_MULTIPLIER } from "../utils/gameConstants";
 import { Cell, Position } from "../utils/gameTypes";
-import { createInitialGrid, isValidPosition, isAdjacent } from "../utils/gameLogic";
+import { createInitialGrid, isValidPosition } from "../utils/gameLogic";
 import { toast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import GamePiece from "./GamePiece";
 
-const harvestMessages = [
-  "A bountiful harvest! 🌾",
-  "Your fields are overflowing! 🌟",
-  "Nature's abundance flows! 🍂",
-  "A golden harvest awaits! ✨",
-  "Prosperity blooms! 🌺",
-  "The harvest multiplies! 💫",
-  "Fortune favors your fields! 🌅",
-  "A magical harvest appears! ⭐",
-];
+interface GameGridProps {
+  betMultiplier: number;
+  onWinningsUpdate: (winnings: number) => void;
+}
 
-const getRandomMessage = () => {
-  return harvestMessages[Math.floor(Math.random() * harvestMessages.length)];
-};
-
-const GameGrid = () => {
+const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   const [grid, setGrid] = useState<Cell[][]>([]);
-  const [selectedCell, setSelectedCell] = useState<Position | null>(null);
-  const [isChecking, setIsChecking] = useState(false);
+  const [isSpinning, setIsSpinning] = useState(false);
   const [totalWinnings, setTotalWinnings] = useState(0);
+  const baseBet = 0.01;
 
   useEffect(() => {
     initializeGrid();
@@ -45,19 +36,35 @@ const GameGrid = () => {
   };
 
   const calculatePayout = (matchCount: number, hasWild: boolean): number => {
-    const basePayout = 0.01 * matchCount;
+    const basePayout = baseBet * betMultiplier * matchCount;
     return hasWild ? basePayout * WILD_MULTIPLIER : basePayout;
+  };
+
+  const spin = async () => {
+    if (isSpinning) return;
+    
+    setIsSpinning(true);
+    const newGrid = createInitialGrid();
+    setGrid(newGrid);
+
+    setTimeout(() => {
+      const updatedGrid = newGrid.map(row =>
+        row.map(cell => ({ ...cell, isDropping: false }))
+      );
+      setGrid(updatedGrid);
+      checkAllPaylines();
+      setIsSpinning(false);
+    }, 1000);
   };
 
   const checkAllPaylines = async () => {
     if (!grid.length) return false;
     
-    setIsChecking(true);
     let hasMatches = false;
     const newGrid = [...grid];
     let currentWinnings = 0;
     
-    PAYLINES.forEach((payline, paylineIndex) => {
+    PAYLINES.forEach((payline) => {
       const validPositions = payline.filter(([row, col]) => 
         isValidPosition(row, col)
       );
@@ -84,17 +91,19 @@ const GameGrid = () => {
         if (matchCount >= 3) {
           const payout = calculatePayout(matchCount, hasWild);
           currentWinnings += payout;
+          onWinningsUpdate(payout);
 
           validPositions.slice(i, i + matchCount).forEach(([row, col]) => {
-            newGrid[row][col].matched = true;
-            hasMatches = true;
+            if (isValidPosition(row, col)) {
+              newGrid[row][col].matched = true;
+              hasMatches = true;
+            }
           });
 
-          const wildBonus = hasWild ? " (Wild Bonus! x2)" : "";
           toast({
-            title: getRandomMessage(),
-            description: `Payline ${paylineIndex + 1}: ${matchCount} matches for ${payout.toFixed(3)} SOL${wildBonus}`,
-            className: "bg-gradient-to-r from-amber-200 to-yellow-400 text-amber-900 border-amber-300",
+            title: "🌟 Winning Combination!",
+            description: `${matchCount} matches with ${payout.toFixed(3)} SOL payout${hasWild ? " (Wild Bonus!)" : ""}`,
+            className: "bg-gradient-to-r from-amber-200 to-yellow-400 text-amber-900",
           });
         }
       }
@@ -107,7 +116,6 @@ const GameGrid = () => {
       await handleMatches();
     }
 
-    setIsChecking(false);
     return hasMatches;
   };
 
@@ -157,81 +165,36 @@ const GameGrid = () => {
     }, 300);
   };
 
-  const swapCells = async (pos1: Position, pos2: Position) => {
-    if (isChecking || !isValidPosition(pos1.row, pos1.col) || !isValidPosition(pos2.row, pos2.col)) return;
-
-    const newGrid = [...grid];
-    const temp = { ...newGrid[pos1.row][pos1.col] };
-    newGrid[pos1.row][pos1.col] = { ...newGrid[pos2.row][pos2.col] };
-    newGrid[pos2.row][pos2.col] = temp;
-    setGrid(newGrid);
-    
-    const hasMatches = await checkAllPaylines();
-    if (!hasMatches) {
-      setTimeout(() => {
-        const revertGrid = [...newGrid];
-        revertGrid[pos1.row][pos1.col] = temp;
-        revertGrid[pos2.row][pos2.col] = newGrid[pos1.row][pos1.col];
-        setGrid(revertGrid);
-      }, 500);
-    }
-  };
-
-  const handleCellClick = (row: number, col: number) => {
-    if (isChecking || !isValidPosition(row, col)) return;
-
-    const clickedPosition = { row, col };
-    
-    if (!selectedCell) {
-      setSelectedCell(clickedPosition);
-      return;
-    }
-
-    if (row === selectedCell.row && col === selectedCell.col) {
-      setSelectedCell(null);
-      return;
-    }
-
-    if (isAdjacent(selectedCell, clickedPosition)) {
-      swapCells(selectedCell, clickedPosition);
-      setSelectedCell(null);
-    } else {
-      setSelectedCell(clickedPosition);
-    }
-  };
-
   if (!grid.length) return null;
 
   return (
     <Card className="p-8 bg-gradient-to-b from-amber-900/10 to-orange-900/10 border-amber-600/20">
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-amber-200 to-yellow-400 bg-clip-text text-transparent">
-            Harvest Match
-          </h2>
-          <div className="text-lg font-semibold text-amber-400">
-            Total Harvest: {totalWinnings.toFixed(3)} SOL
-          </div>
-        </div>
-        
         <div className="game-grid">
           {grid.map((row, i) =>
             row.map((cell, j) => (
               <div
                 key={cell.key}
-                className="cell cursor-pointer"
-                onClick={() => handleCellClick(i, j)}
+                className="cell"
               >
                 <GamePiece
                   type={PUMPKIN_TYPES[cell.type]}
                   isMatched={cell.matched}
-                  isSelected={selectedCell?.row === i && selectedCell?.col === j}
+                  isSelected={false}
                   isDropping={cell.isDropping}
                 />
               </div>
             ))
           )}
         </div>
+        
+        <Button
+          onClick={spin}
+          disabled={isSpinning}
+          className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-bold py-3"
+        >
+          {isSpinning ? "Spinning..." : "Spin"}
+        </Button>
       </div>
     </Card>
   );
