@@ -1,15 +1,14 @@
 import { Cell } from "./gameTypes";
 import { GAME_PIECES } from "./gameConstants";
-import { logPaylineCheck, generateVerificationId } from "./verificationUtils";
+import { generateVerificationId } from "./verificationUtils";
 
 export interface PaylineCheckResult {
   hasMatches: boolean;
   winnings: number;
   hasWild: boolean;
   matchedPositions: [number, number][];
-  matchedSymbols: number[];
-  verificationId: string;
   symbolCombination: string;
+  verificationId: string;
 }
 
 export const checkPaylineMatch = (
@@ -17,58 +16,60 @@ export const checkPaylineMatch = (
   grid: Cell[][],
   paylineIndex: number
 ): PaylineCheckResult => {
+  console.log(`\n🔍 Checking payline ${paylineIndex}`);
   const verificationId = generateVerificationId();
-  console.log(`\n🔍 Checking payline ${paylineIndex} [${verificationId}]`);
   
-  // Extract symbols and positions from the payline
-  const symbolsWithPositions = payline.map(([row, col]) => ({
-    symbol: grid[row][col].type,
+  // Get symbols for this payline
+  const symbols = payline.map(([row, col]) => ({
+    type: grid[row][col].type,
     position: [row, col] as [number, number]
   }));
+  
+  console.log('Symbols in payline:', symbols.map(s => s.type));
 
   let currentRun = {
     symbol: -1,
     count: 0,
     positions: [] as [number, number][],
-    includesWild: false
+    hasWild: false
   };
 
   let bestRun = {
     symbol: -1,
     count: 0,
     positions: [] as [number, number][],
-    includesWild: false
+    hasWild: false
   };
 
   // Analyze consecutive matches
-  for (let i = 0; i < symbolsWithPositions.length; i++) {
-    const { symbol, position } = symbolsWithPositions[i];
-    const isWild = symbol === GAME_PIECES.WILD;
+  for (let i = 0; i < symbols.length; i++) {
+    const { type: currentSymbol, position } = symbols[i];
+    const isWild = currentSymbol === GAME_PIECES.WILD;
     
-    console.log(`Position ${position}: Symbol ${symbol} ${isWild ? '(WILD)' : ''}`);
+    console.log(`Position ${position}: Symbol ${currentSymbol} ${isWild ? '(WILD)' : ''}`);
 
     if (currentRun.count === 0) {
       // Start new run
       currentRun = {
-        symbol: isWild ? -1 : symbol,
+        symbol: isWild ? -1 : currentSymbol,
         count: 1,
         positions: [position],
-        includesWild: isWild
+        hasWild: isWild
       };
     } else {
       const canMatch = 
-        symbol === currentRun.symbol || 
+        currentSymbol === currentRun.symbol || 
         isWild || 
         (currentRun.symbol === -1 && !isWild);
 
       if (canMatch) {
         // Continue current run
         if (currentRun.symbol === -1 && !isWild) {
-          currentRun.symbol = symbol;
+          currentRun.symbol = currentSymbol;
         }
         currentRun.count++;
         currentRun.positions.push(position);
-        currentRun.includesWild = currentRun.includesWild || isWild;
+        currentRun.hasWild = currentRun.hasWild || isWild;
       } else {
         // End current run and check if it's better than best run
         if (currentRun.count >= 3 && currentRun.count > bestRun.count) {
@@ -76,10 +77,10 @@ export const checkPaylineMatch = (
         }
         // Start new run with current symbol
         currentRun = {
-          symbol: symbol,
+          symbol: currentSymbol,
           count: 1,
           positions: [position],
-          includesWild: isWild
+          hasWild: isWild
         };
       }
     }
@@ -90,30 +91,26 @@ export const checkPaylineMatch = (
     bestRun = { ...currentRun };
   }
 
-  // Calculate result
   const hasMatches = bestRun.count >= 3;
-  const winnings = hasMatches ? bestRun.count * (bestRun.includesWild ? 2 : 1) : 0;
-  
-  const result: PaylineCheckResult = {
+  const winnings = hasMatches ? bestRun.count * (bestRun.hasWild ? 2 : 1) : 0;
+
+  console.log(`Payline ${paylineIndex} result:`, {
+    hasMatches,
+    matchCount: bestRun.count,
+    positions: bestRun.positions,
+    symbol: bestRun.symbol,
+    hasWild: bestRun.hasWild,
+    winnings
+  });
+
+  return {
     hasMatches,
     winnings,
-    hasWild: bestRun.includesWild,
+    hasWild: bestRun.hasWild,
     matchedPositions: bestRun.positions,
-    matchedSymbols: hasMatches ? [bestRun.symbol] : [],
-    verificationId,
     symbolCombination: hasMatches ? 
-      `${bestRun.count}x ${bestRun.symbol} ${bestRun.includesWild ? '(with WILD)' : ''}` : 
-      'No matches'
-  };
-
-  logPaylineCheck(
-    paylineIndex,
-    result.matchedSymbols,
-    bestRun.count,
-    result.matchedPositions,
-    bestRun.includesWild ? 1 : 0,
+      `${bestRun.count}x ${bestRun.symbol} ${bestRun.hasWild ? '(with WILD)' : ''}` : 
+      'No matches',
     verificationId
-  );
-
-  return result;
-}
+  };
+};
