@@ -7,6 +7,7 @@ interface PaylineCheckResult {
   winnings: number;
   matchCount: number;
   hasWild: boolean;
+  matchedPositions?: [number, number][];
 }
 
 export const handlePaylineCheck = (
@@ -20,11 +21,22 @@ export const handlePaylineCheck = (
   );
 
   if (validPositions.length < 3) {
-    return { hasMatches: false, winnings: 0, matchCount: 0, hasWild: false };
+    return { 
+      hasMatches: false, 
+      winnings: 0, 
+      matchCount: 0, 
+      hasWild: false 
+    };
   }
 
   const symbols = validPositions.map(([row, col]) => grid[row][col].type);
-  let maxResult = { hasMatches: false, winnings: 0, matchCount: 0, hasWild: false };
+  let maxResult: PaylineCheckResult = { 
+    hasMatches: false, 
+    winnings: 0, 
+    matchCount: 0, 
+    hasWild: false,
+    matchedPositions: []
+  };
 
   for (let i = 0; i < symbols.length - 2; i++) {
     const hasWild = symbols.slice(i, i + 3).includes(GAME_PIECES.WILD);
@@ -34,10 +46,12 @@ export const handlePaylineCheck = (
 
     let matchCount = 0;
     let j = i;
+    let currentMatchedPositions: [number, number][] = [];
 
     while (j < symbols.length && 
            (symbols[j] === symbolToMatch || symbols[j] === GAME_PIECES.WILD)) {
       matchCount++;
+      currentMatchedPositions.push(validPositions[j]);
       j++;
     }
 
@@ -45,18 +59,13 @@ export const handlePaylineCheck = (
       const basePayout = baseBet * betMultiplier * matchCount;
       const payout = hasWild ? basePayout * WILD_MULTIPLIER : basePayout;
 
-      validPositions.slice(i, i + matchCount).forEach(([row, col]) => {
-        if (isValidPosition(row, col)) {
-          grid[row][col].matched = true;
-        }
-      });
-
       if (payout > maxResult.winnings) {
         maxResult = {
           hasMatches: true,
           winnings: payout,
           matchCount,
-          hasWild
+          hasWild,
+          matchedPositions: currentMatchedPositions
         };
       }
     }
