@@ -35,7 +35,12 @@ export const checkGameState = (
   const matchedPositions: [number, number][] = [];
   const paylineResults: PaylineCheckResult[] = [];
 
-  PAYLINES.forEach((payline, index) => {
+  // Convert PAYLINES to properly typed tuples
+  const typedPaylines: [number, number][][] = PAYLINES.map(
+    payline => payline.map((pos): [number, number] => [pos[0], pos[1]])
+  );
+
+  typedPaylines.forEach((payline, index) => {
     const result = checkPaylineMatch(payline, newGrid, index);
     paylineResults.push(result);
     
@@ -50,8 +55,7 @@ export const checkGameState = (
       
       onWinningsUpdate(winAmount);
 
-      // Ensure matched positions are properly typed tuples
-      result.matchedPositions.forEach((position: [number, number]) => {
+      result.matchedPositions.forEach((position) => {
         const [row, col] = position;
         if (newGrid[row] && newGrid[row][col]) {
           newGrid[row][col].matched = true;

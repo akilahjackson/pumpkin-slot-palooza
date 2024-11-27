@@ -11,51 +11,55 @@ export interface PaylineCheckResult {
   verificationId: string;
 }
 
+interface SequenceInfo {
+  length: number;
+  positions: [number, number][];
+  hasWild: boolean;
+  baseSymbol: number;
+}
+
 export const checkPaylineMatch = (
   payline: [number, number][],
   grid: Cell[][],
   paylineIndex: number
 ): PaylineCheckResult => {
   const verificationId = `payline-${paylineIndex}-${Date.now()}`;
+  
+  // Convert payline positions to properly typed tuples
+  const validPositions: [number, number][] = payline.map(([row, col]): [number, number] => [row, col]);
   const symbols: number[] = [];
-  const positions: [number, number][] = [];
-  let hasWild = false;
-
-  // Collect symbols and positions along the payline
-  payline.forEach(([row, col]) => {
+  
+  // Collect symbols along the payline
+  validPositions.forEach(([row, col]) => {
     if (grid[row] && grid[row][col]) {
       symbols.push(grid[row][col].type);
-      positions.push([row, col]);
-      if (grid[row][col].type === GAME_PIECES.WILD) {
-        hasWild = true;
-      }
     }
   });
 
-  // Find the longest consecutive matching sequence
-  let maxSequence = {
+  let maxSequence: SequenceInfo = {
     length: 0,
-    positions: [] as [number, number][],
+    positions: [],
     hasWild: false,
     baseSymbol: -1
   };
 
-  for (let start = 0; start < positions.length; start++) {
-    let currentSymbol = symbols[start];
+  // Find the longest consecutive matching sequence
+  for (let start = 0; start < validPositions.length; start++) {
+    const currentSymbol = symbols[start];
     if (currentSymbol === GAME_PIECES.WILD) continue;
 
-    let sequence = {
+    let sequence: SequenceInfo = {
       length: 1,
-      positions: [positions[start]],
+      positions: [validPositions[start]],
       hasWild: false,
       baseSymbol: currentSymbol
     };
 
-    for (let next = start + 1; next < positions.length; next++) {
+    for (let next = start + 1; next < validPositions.length; next++) {
       const nextSymbol = symbols[next];
       if (nextSymbol === currentSymbol || nextSymbol === GAME_PIECES.WILD) {
         sequence.length++;
-        sequence.positions.push(positions[next]);
+        sequence.positions.push(validPositions[next]);
         if (nextSymbol === GAME_PIECES.WILD) {
           sequence.hasWild = true;
         }
@@ -65,12 +69,7 @@ export const checkPaylineMatch = (
     }
 
     if (sequence.length >= 3 && sequence.length > maxSequence.length) {
-      maxSequence = {
-        length: sequence.length,
-        positions: sequence.positions as [number, number][],
-        hasWild: sequence.hasWild,
-        baseSymbol: sequence.baseSymbol
-      };
+      maxSequence = sequence;
     }
   }
 
