@@ -113,13 +113,19 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     
     PAYLINES.forEach((payline) => {
       const result = handlePaylineCheck(payline, newGrid, baseBet, betMultiplier);
+      console.log('Payline check result:', result);
+      
       if (result.hasMatches) {
         hasMatches = true;
         totalWinnings += result.winnings;
         onWinningsUpdate(result.winnings);
         
-        const isBigWinAmount = result.winnings >= baseBet * betMultiplier * 50;
+        const multiplier = result.winnings / (baseBet * betMultiplier);
+        console.log('Win multiplier:', multiplier);
+        
+        const isBigWinAmount = multiplier >= 50;
         if (isBigWinAmount) {
+          console.log('Big win detected! Multiplier:', multiplier);
           setIsBigWin(true);
           setShowWinDialog(true);
           audioManager.stopBackgroundMusic();
@@ -145,6 +151,9 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       setTimeout(resetGameState, 1500);
     } else {
       setIsDisplayingWin(true);
+      if (!isBigWin) {
+        setShowWinDialog(true);
+      }
       triggerWinningEffects();
       setTimeout(resetGameState, 2500);
     }
