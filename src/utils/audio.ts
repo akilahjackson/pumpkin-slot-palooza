@@ -34,13 +34,20 @@ class AudioManager {
 
   toggleMute(): boolean {
     this.isMuted = !this.isMuted;
-    this.backgroundMusic.muted = this.isMuted;
+    if (this.isMuted) {
+      this.backgroundMusic.pause();
+    } else {
+      this.backgroundMusic.play();
+    }
     return this.isMuted;
   }
 
   playBackgroundMusic() {
     if (!this.isMuted) {
-      this.backgroundMusic.play().catch(() => console.log('Background music auto-play prevented'));
+      console.log('Playing background music');
+      this.backgroundMusic.play().catch(() => {
+        console.log('Background music auto-play prevented');
+      });
     }
   }
 
@@ -77,7 +84,6 @@ class AudioManager {
     this.winSound.currentTime = 0;
     this.loseSound.pause();
     this.loseSound.currentTime = 0;
-    this.playBackgroundMusic();
   }
 }
 

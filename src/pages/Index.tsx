@@ -13,7 +13,13 @@ const Index = () => {
   const baseBet = 0.01;
 
   useEffect(() => {
+    // Start background music as soon as the component mounts
     audioManager.playBackgroundMusic();
+    
+    // Cleanup on unmount
+    return () => {
+      audioManager.stopAllSoundEffects();
+    };
   }, []);
 
   const handleMaxBet = () => {
@@ -22,11 +28,6 @@ const Index = () => {
 
   const handleWinningsUpdate = (winnings: number) => {
     setTotalWinnings(prev => prev + winnings);
-    if (winnings > 0) {
-      audioManager.playWinSound();
-    } else if (winnings < 0) {
-      audioManager.playLoseSound();
-    }
   };
 
   const toggleMute = () => {

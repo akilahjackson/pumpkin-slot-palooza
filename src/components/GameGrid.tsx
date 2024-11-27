@@ -51,13 +51,18 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     const newGrid = createInitialGrid();
     setGrid(newGrid);
 
+    // Wait for grid animation to complete before checking results
     setTimeout(() => {
       const updatedGrid = newGrid.map(row =>
         row.map(cell => ({ ...cell, isDropping: false }))
       );
       setGrid(updatedGrid);
-      checkAllPaylines();
-      setIsSpinning(false);
+      
+      // Check for wins after grid has settled
+      setTimeout(() => {
+        checkAllPaylines();
+        setIsSpinning(false);
+      }, 500);
     }, 1000);
   };
 
