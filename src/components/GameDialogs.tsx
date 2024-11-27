@@ -19,7 +19,7 @@ const GameDialogs = ({
       <WinningDialog
         isOpen={showLoseDialog}
         onClose={onLoseDialogClose}
-        message="Better luck next time! Keep spinning for a chance to win big! 🍀"
+        message="Better luck next time! 🍀"
         emoji={<Clover className="text-green-500 w-16 h-16" />}
         duration={5000}
       />
