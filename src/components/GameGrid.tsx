@@ -59,13 +59,6 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     const newGrid = createInitialGrid();
     setGrid(newGrid);
     audioManager.playDropSound();
-    
-    setTimeout(() => {
-      const updatedGrid = newGrid.map(row =>
-        row.map(cell => ({ ...cell, isDropping: false }))
-      );
-      setGrid(updatedGrid);
-    }, 500);
   };
 
   const resetGameState = () => {
@@ -119,19 +112,20 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     onWinningsUpdate(-(baseBet * betMultiplier));
     console.log('Bet deducted:', -(baseBet * betMultiplier));
     
-    const newGrid = createInitialGrid();
+    // Create new grid with unique keys for each spin
+    const newGrid = createInitialGrid().map(row => 
+      row.map(cell => ({
+        ...cell,
+        key: `${Date.now()}-${Math.random()}`,
+        isDropping: true
+      }))
+    );
     setGrid(newGrid);
 
+    // Check paylines after animation delay
     setTimeout(() => {
-      const updatedGrid = newGrid.map(row =>
-        row.map(cell => ({ ...cell, isDropping: false }))
-      );
-      setGrid(updatedGrid);
-      
-      setTimeout(() => {
-        checkPaylines();
-      }, 500);
-    }, 1000);
+      checkPaylines();
+    }, (GRID_SIZE * GRID_SIZE * 100) + 500); // Wait for all pieces to appear plus extra delay
   };
 
   if (!grid.length) {
