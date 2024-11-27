@@ -75,24 +75,24 @@
 @keyframes piece-flash {
   0%, 100% {
     opacity: 1;
-    transform: scale(1);
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
   }
   50% {
     opacity: 0.7;
     transform: scale(1.1);
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
   }
 }
 
 @keyframes piece-glow {
   0%, 100% {
-    transform: scale(1);
-    box-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(251, 191, 36, 0.5);
   }
   50% {
-    transform: scale(1.05);
-    box-shadow: 0 0 20px rgba(251, 191, 36, 0.8);
+    transform: scale(1.08);
+    box-shadow: 0 0 25px rgba(251, 191, 36, 0.8);
   }
 }
 

@@ -26,6 +26,7 @@ const GamePiece = ({ type, isMatched, isSelected, isDropping, dropDelay = 0 }: G
           "bg-amber-500/50",  // opaque background for matched pieces
           "border-2 border-amber-400", // border for matched pieces
           "scale-105", // enlarge matched pieces
+          "shadow-lg shadow-amber-400/50", // drop shadow for matched pieces
           isWild ? "animate-piece-flash" : "animate-piece-glow"
         ],
         !isMatched && "bg-amber-900/20 backdrop-blur-sm",
