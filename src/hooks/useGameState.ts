@@ -75,8 +75,14 @@ export const useGameState = (
       setShowLoseDialog(true);
     } else {
       console.log('Matches found! Displaying win');
-      // Update grid with matched positions
-      setGrid(result.updatedGrid);
+      
+      const updatedGrid = result.updatedGrid.map(row => 
+        row.map(cell => ({
+          ...cell,
+          matched: cell.matched
+        }))
+      );
+      setGrid(updatedGrid);
       
       audioManager.stopBackgroundMusic();
       audioManager.playWinSound();
@@ -105,16 +111,6 @@ export const useGameState = (
     setIsSpinning(true);
     setIsInitialLoad(false);
     
-    // Reset matched state for all cells before new spin
-    setGrid(prevGrid => 
-      prevGrid.map(row => 
-        row.map(cell => ({
-          ...cell,
-          matched: false
-        }))
-      )
-    );
-    
     audioManager.stopAllSoundEffects();
     audioManager.playBackgroundMusic();
     audioManager.playDropSound();
@@ -135,7 +131,6 @@ export const useGameState = (
     console.log('Generated new grid:', newGrid);
     setGrid(newGrid);
     
-    // Calculate total animation time
     const totalPieces = GRID_SIZE * GRID_SIZE;
     const pieceDelay = 100;
     const totalDelay = totalPieces * pieceDelay;
