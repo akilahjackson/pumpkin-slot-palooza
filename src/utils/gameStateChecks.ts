@@ -1,5 +1,5 @@
 import { Cell } from "./gameTypes";
-import { PAYLINES, GAME_PIECES, WILD_MULTIPLIER } from "./gameConstants";
+import { GAME_PIECES, PAYLINES, WILD_MULTIPLIER } from "./gameConstants";
 
 interface PaylineCheckResult {
   hasMatches: boolean;
@@ -59,9 +59,11 @@ const checkPaylineMatch = (
   let winnings = 0;
   let wildCount = 0;
 
+  // Check each possible starting position
   for (let i = 0; i < symbols.length - 2; i++) {
     const currentSymbol = symbols[i];
     
+    // Skip if starting symbol is WILD
     if (currentSymbol === GAME_PIECES.WILD) {
       console.log(`⚠️ Skipping WILD as base symbol at position ${i}`);
       continue;
@@ -72,6 +74,7 @@ const checkPaylineMatch = (
     let currentMatchedSymbols: number[] = [currentSymbol];
     wildCount = 0;
 
+    // Check subsequent symbols
     for (let j = i + 1; j < symbols.length; j++) {
       const nextSymbol = symbols[j];
       if (nextSymbol === currentSymbol || nextSymbol === GAME_PIECES.WILD) {
@@ -86,6 +89,7 @@ const checkPaylineMatch = (
       }
     }
 
+    // Update match information if this is a valid winning combination
     if (consecutiveMatches >= 3) {
       matchCount = consecutiveMatches;
       hasWild = wildCount > 0;
@@ -128,6 +132,7 @@ export const checkGameState = (
   const allMatchedPositions: [number, number][] = [];
   const paylineResults: PaylineCheckResult[] = [];
 
+  // Check each payline
   PAYLINES.forEach((payline, index) => {
     const typedPayline = payline.map(pos => [pos[0], pos[1]] as [number, number]);
     const result = checkPaylineMatch(typedPayline, newGrid, index);
@@ -139,6 +144,7 @@ export const checkGameState = (
       currentTotalWinnings += winAmount;
       onWinningsUpdate(winAmount);
       
+      // Update matched positions in grid
       result.matchedPositions.forEach(([row, col]) => {
         if (newGrid[row] && newGrid[row][col]) {
           newGrid[row][col].matched = true;

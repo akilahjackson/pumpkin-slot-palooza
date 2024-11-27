@@ -1,7 +1,7 @@
 import { Cell } from "../utils/gameTypes";
 import { PUMPKIN_TYPES } from "../utils/gameConstants";
 import GamePiece from "./GamePiece";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 
 interface GameBoardProps {
   grid: Cell[][];
@@ -12,7 +12,6 @@ const GameBoard = ({ grid, isInitialLoad }: GameBoardProps) => {
   const [visiblePieces, setVisiblePieces] = useState<boolean[][]>([]);
   const [currentGrid, setCurrentGrid] = useState<Cell[][]>([]);
 
-  // Initialize visibility matrix when grid changes
   useEffect(() => {
     console.log('Grid updated in GameBoard:', grid);
     if (!grid || grid.length === 0) return;
@@ -56,7 +55,12 @@ const GameBoard = ({ grid, isInitialLoad }: GameBoardProps) => {
     <div className="game-grid">
       {currentGrid.map((row, i) =>
         row.map((cell, j) => (
-          <div key={`${cell.key}-${cell.matched}`} className="cell">
+          <div 
+            key={`${cell.key}-${cell.matched}`} 
+            className="cell"
+            data-matched={cell.matched}
+            data-position={`${i},${j}`}
+          >
             {(!isInitialLoad || (visiblePieces[i] && visiblePieces[i][j])) && (
               <GamePiece
                 type={PUMPKIN_TYPES[cell.type]}

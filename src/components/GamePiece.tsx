@@ -23,10 +23,10 @@ const GamePiece = ({ type, isMatched, isSelected, isDropping, dropDelay = 0 }: G
         "rounded-lg transition-all duration-300",
         "transform",
         isMatched && [
-          "bg-amber-500/50",  // opaque background for matched pieces
-          "border-2 border-amber-400", // border for matched pieces
-          "scale-105", // enlarge matched pieces
-          "shadow-lg shadow-amber-400/50", // drop shadow for matched pieces
+          "bg-amber-500/50",
+          "border-2 border-amber-400",
+          "scale-105",
+          "shadow-lg shadow-amber-400/50",
           isWild ? "animate-piece-flash" : "animate-piece-glow"
         ],
         !isMatched && "bg-amber-900/20 backdrop-blur-sm",
@@ -34,6 +34,9 @@ const GamePiece = ({ type, isMatched, isSelected, isDropping, dropDelay = 0 }: G
         !isMatched && isDropping && "animate-piece-drop",
         !isMatched && !isDropping && "animate-piece-enter"
       )}
+      data-type={type}
+      data-matched={isMatched}
+      data-wild={isWild}
     >
       <span 
         className={cn(
