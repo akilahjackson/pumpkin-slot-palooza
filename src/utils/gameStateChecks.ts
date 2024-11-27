@@ -51,8 +51,8 @@ export const checkGameState = (
       onWinningsUpdate(result.winnings);
       
       if (result.matchedPositions) {
-        // Ensure each position is properly typed as a tuple
-        const typedPositions = result.matchedPositions.map(
+        // Ensure positions are properly typed as tuples
+        const typedPositions: [number, number][] = result.matchedPositions.map(
           ([row, col]): [number, number] => [row, col]
         );
         allMatchedPositions = [...allMatchedPositions, ...typedPositions];
