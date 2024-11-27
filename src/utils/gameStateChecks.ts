@@ -1,7 +1,6 @@
 import { Cell } from "./gameTypes";
-import { PAYLINES, PUMPKIN_TYPES } from "./gameConstants";
-import { checkPaylineMatch, PaylineCheckResult } from "./paylineChecks";
-import { createGameStateSnapshot } from "./verificationUtils";
+import { PAYLINES } from "./gameConstants";
+import { checkPaylineMatch } from "./paylineChecks";
 
 interface GameCheckResult {
   hasMatches: boolean;
@@ -11,13 +10,6 @@ interface GameCheckResult {
   highestMultiplier: number;
   updatedGrid: Cell[][];
   matchedPositions: [number, number][];
-  verificationDetails: {
-    id: string;
-    timestamp: string;
-    paylineResults: PaylineCheckResult[];
-    totalPayout: number;
-    gridSnapshot: string;
-  };
 }
 
 export const checkGameState = (
@@ -28,70 +20,68 @@ export const checkGameState = (
 ): GameCheckResult => {
   console.log('\n🎮 Starting game state check');
   
-  const newGrid = grid.map(row => row.map(cell => ({...cell, matched: false})));
   let totalWinnings = 0;
-  let highestMultiplier = 0;
   let hasWildBonus = false;
-  const matchedPositions: [number, number][] = [];
-  const paylineResults: PaylineCheckResult[] = [];
-
+  let highestMultiplier = 0;
+  const allMatchedPositions = new Set<string>();
+  
+  // Create a new grid with all matches reset
+  const updatedGrid = grid.map(row =>
+    row.map(cell => ({
+      ...cell,
+      matched: false
+    }))
+  );
+  
+  // Check each payline
   PAYLINES.forEach((payline, index) => {
-    const result = checkPaylineMatch(payline, newGrid, index);
-    paylineResults.push(result);
+    const result = checkPaylineMatch(payline, grid, index);
     
     if (result.hasMatches) {
-      const winAmount = result.winnings * baseBet * betMultiplier;
-      totalWinnings += winAmount;
+      // Calculate winnings for this payline
+      const paylineWinnings = result.winnings * baseBet * betMultiplier;
+      totalWinnings += paylineWinnings;
       
       console.log(`\n💎 Win on payline ${index}:`, {
-        amount: winAmount,
+        amount: paylineWinnings,
+        combination: result.symbolCombination,
         positions: result.matchedPositions
       });
       
-      onWinningsUpdate(winAmount);
-
-      result.matchedPositions.forEach(position => {
-        const [row, col] = position;
-        newGrid[row][col].matched = true;
-        if (!matchedPositions.some(([r, c]) => r === row && c === col)) {
-          matchedPositions.push(position);
-        }
+      // Mark matched positions in the grid
+      result.matchedPositions.forEach(([row, col]) => {
+        updatedGrid[row][col].matched = true;
+        allMatchedPositions.add(`${row},${col}`);
       });
-
-      if (result.winnings > highestMultiplier) {
-        highestMultiplier = result.winnings;
-      }
-
+      
       if (result.hasWild) {
         hasWildBonus = true;
       }
+      
+      if (result.winnings > highestMultiplier) {
+        highestMultiplier = result.winnings;
+      }
     }
   });
-
-  const snapshot = createGameStateSnapshot(grid, matchedPositions);
+  
+  // Convert matched positions set back to array of tuples
+  const matchedPositions: [number, number][] = Array.from(allMatchedPositions)
+    .map(pos => pos.split(',').map(Number) as [number, number]);
   
   console.log('\n📊 Game Check Summary:', {
     totalWin: totalWinnings,
     matchCount: matchedPositions.length,
     highestMultiplier,
-    hasWildBonus,
-    verificationId: snapshot.verificationId
+    hasWildBonus
   });
-
+  
   return {
     hasMatches: matchedPositions.length > 0,
     totalWinnings,
     isBigWin: highestMultiplier >= 50,
     hasWildBonus,
     highestMultiplier,
-    updatedGrid: newGrid,
-    matchedPositions,
-    verificationDetails: {
-      id: snapshot.verificationId,
-      timestamp: snapshot.timestamp,
-      paylineResults,
-      totalPayout: totalWinnings,
-      gridSnapshot: snapshot.gridState
-    }
+    updatedGrid,
+    matchedPositions
   };
 };
