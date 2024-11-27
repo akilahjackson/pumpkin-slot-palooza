@@ -20,6 +20,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   const [isSpinning, setIsSpinning] = useState(false);
   const [showLoseDialog, setShowLoseDialog] = useState(false);
   const [showWinDialog, setShowWinDialog] = useState(false);
+  const [isDisplayingWin, setIsDisplayingWin] = useState(false);
   const baseBet = 0.01;
 
   const initializeGrid = () => {
@@ -39,12 +40,13 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     setShowLoseDialog(false);
     setShowWinDialog(false);
     setIsSpinning(false);
+    setIsDisplayingWin(false);
     const newGrid = createInitialGrid();
     setGrid(newGrid);
   };
 
   const spin = async () => {
-    if (isSpinning) return;
+    if (isSpinning || isDisplayingWin) return;
     
     setIsSpinning(true);
     setShowLoseDialog(false);
@@ -109,7 +111,8 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       // Reset state immediately for lose condition
       setTimeout(resetGameState, 1500);
     } else {
-      // For win conditions, give more time to display winning paylines
+      // For win conditions, set displaying win state and give more time
+      setIsDisplayingWin(true);
       setTimeout(resetGameState, 2500);
     }
   };
@@ -123,7 +126,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     <Card className="bg-transparent border-amber-600/20 backdrop-blur-sm shadow-xl p-8">
       <div className="space-y-6">
         <GameBoard grid={grid} />
-        <GameControls onSpin={spin} isSpinning={isSpinning} />
+        <GameControls onSpin={spin} isSpinning={isSpinning || isDisplayingWin} />
         <GameDialogs
           showLoseDialog={showLoseDialog}
           showWinDialog={showWinDialog}
