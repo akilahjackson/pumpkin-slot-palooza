@@ -55,13 +55,12 @@ export const useGameState = (
     console.log('💰 Win amount:', result.totalWinnings);
     
     setGrid(prevGrid => {
-      const newGrid = prevGrid.map((row, i) => 
+      return prevGrid.map((row, i) => 
         row.map((cell, j) => ({
           ...cell,
           matched: result.updatedGrid[i][j].matched
         }))
       );
-      return newGrid;
     });
     
     audioManager.stopBackgroundMusic();
@@ -87,6 +86,8 @@ export const useGameState = (
   }, []);
 
   const checkResults = useCallback(() => {
+    if (!grid.length) return;
+    
     console.log('🔍 Checking game results');
     const result = checkGameState(grid, baseBet, betMultiplier, onWinningsUpdate);
     
@@ -106,21 +107,17 @@ export const useGameState = (
     setIsSpinning(true);
     setIsInitialLoad(false);
     
-    // Reset previous game state
     setShowLoseDialog(false);
     setShowWinDialog(false);
     setIsBigWin(false);
     setHasWildBonus(false);
     
-    // Play spin sound effects
     audioManager.stopAllSoundEffects();
     audioManager.playBackgroundMusic();
     audioManager.playDropSound();
     
-    // Deduct bet amount
     onWinningsUpdate(-(baseBet * betMultiplier));
     
-    // Generate new grid with dropping animations
     const timestamp = Date.now();
     const newGrid = createInitialGrid().map((row, rowIndex) => 
       row.map((cell, colIndex) => ({
@@ -135,14 +132,12 @@ export const useGameState = (
     console.log('📥 Setting new grid');
     setGrid(newGrid);
     
-    // Wait for drop animations to complete
-    const dropDuration = 600; // CSS animation duration
+    const dropDuration = 600;
     const totalDelay = (GRID_SIZE * GRID_SIZE * 100) + dropDuration;
     
     console.log(`⏳ Waiting ${totalDelay}ms for animations`);
     await new Promise(resolve => setTimeout(resolve, totalDelay));
     
-    // Remove dropping states
     setGrid(prevGrid => 
       prevGrid.map(row => 
         row.map(cell => ({
@@ -152,7 +147,6 @@ export const useGameState = (
       )
     );
     
-    // Check results after animations complete
     checkResults();
   }, [isSpinning, baseBet, betMultiplier, onWinningsUpdate, checkResults]);
 
