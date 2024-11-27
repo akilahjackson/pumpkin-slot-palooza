@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { GAME_PIECES } from "@/utils/gameConstants";
+import { GAME_PIECES, PUMPKIN_TYPES } from "@/utils/gameConstants";
 
 interface GamePieceProps {
   type: string;
@@ -9,7 +9,7 @@ interface GamePieceProps {
 }
 
 const GamePiece = ({ type, isMatched, isSelected, isDropping }: GamePieceProps) => {
-  const isWild = type === GAME_PIECES.WILD;
+  const isWild = type === PUMPKIN_TYPES[GAME_PIECES.WILD];
 
   return (
     <div
