@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { motion } from "framer-motion";
 import { Clover } from "lucide-react";
@@ -8,14 +8,28 @@ interface WinningDialogProps {
   onClose: () => void;
   message: string;
   emoji?: React.ReactNode;
+  duration?: number;
 }
 
 const WinningDialog = ({ 
   isOpen, 
   onClose, 
   message, 
-  emoji = <Clover className="text-green-500 w-16 h-16" /> 
+  emoji = <Clover className="text-green-500 w-16 h-16" />,
+  duration = 5000 
 }: WinningDialogProps) => {
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    if (isOpen) {
+      timeoutId = setTimeout(() => {
+        onClose();
+      }, duration);
+    }
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [isOpen, onClose, duration]);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 

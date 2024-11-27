@@ -161,7 +161,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   }
 
   return (
-    <Card className="p-8 bg-gradient-to-b from-amber-900/10 to-orange-900/10 border-amber-600/20 backdrop-blur-sm">
+    <Card className="p-8 bg-gradient-to-b from-amber-900/[0.15] to-orange-900/[0.15] border-amber-600/20 backdrop-blur-sm">
       <div className="space-y-6">
         <div className="game-grid">
           {grid.map((row, i) =>
@@ -193,7 +193,8 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
           isOpen={showLoseDialog}
           onClose={() => setShowLoseDialog(false)}
           message="Better luck next time! Keep spinning for a chance to win big! 🍀"
-          emoji="🎰"
+          emoji={<Clover className="text-green-500 w-16 h-16" />}
+          duration={5000}
         />
       </div>
     </Card>
