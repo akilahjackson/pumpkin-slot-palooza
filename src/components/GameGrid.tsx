@@ -9,6 +9,7 @@ import { handlePaylineCheck } from "@/utils/paylineUtils";
 import GameDialogs from "./GameDialogs";
 import GameBoard from "./GameBoard";
 import GameControls from "./GameControls";
+import confetti from 'canvas-confetti';
 
 interface GameGridProps {
   betMultiplier: number;
@@ -22,6 +23,35 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   const [showWinDialog, setShowWinDialog] = useState(false);
   const [isDisplayingWin, setIsDisplayingWin] = useState(false);
   const baseBet = 0.01;
+
+  const triggerWinningEffects = () => {
+    const duration = 2000;
+    const end = Date.now() + duration;
+
+    const frame = () => {
+      confetti({
+        particleCount: 7,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors: ['#FFD700', '#FFA500', '#FF8C00']
+      });
+      
+      confetti({
+        particleCount: 7,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors: ['#FFD700', '#FFA500', '#FF8C00']
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    };
+
+    frame();
+  };
 
   const initializeGrid = () => {
     const newGrid = createInitialGrid();
@@ -90,6 +120,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
           setShowWinDialog(true);
           audioManager.stopBackgroundMusic();
           audioManager.playWinSound();
+          triggerWinningEffects(); // Trigger confetti for big wins
         }
 
         toast({
@@ -100,7 +131,6 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       }
     });
 
-    // Update grid with winning paylines first
     setGrid(newGrid);
     setIsSpinning(false);
 
@@ -108,11 +138,10 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       audioManager.stopBackgroundMusic();
       audioManager.playLoseSound();
       setShowLoseDialog(true);
-      // Reset state immediately for lose condition
       setTimeout(resetGameState, 1500);
     } else {
-      // For win conditions, set displaying win state and give more time
       setIsDisplayingWin(true);
+      triggerWinningEffects(); // Trigger confetti for all wins
       setTimeout(resetGameState, 2500);
     }
   };
