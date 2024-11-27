@@ -18,98 +18,96 @@ export const checkPaylineMatch = (
 ): PaylineCheckResult => {
   console.log(`\n🔍 Checking payline ${paylineIndex}`);
   const verificationId = generateVerificationId();
-  
-  // Get symbols for this payline
-  const symbols = payline.map(([row, col]) => ({
+
+  // Get all positions and symbols in the payline
+  const paylineSymbols = payline.map(([row, col]) => ({
     type: grid[row][col].type,
     position: [row, col] as [number, number]
   }));
-  
-  console.log('Symbols in payline:', symbols.map(s => s.type));
 
-  let currentRun = {
+  console.log('Analyzing payline symbols:', paylineSymbols.map(s => 
+    `${s.type} at [${s.position}]`
+  ));
+
+  let longestMatch = {
+    startIndex: 0,
+    length: 0,
     symbol: -1,
-    count: 0,
     positions: [] as [number, number][],
     hasWild: false
   };
 
-  let bestRun = {
-    symbol: -1,
-    count: 0,
-    positions: [] as [number, number][],
-    hasWild: false
-  };
-
-  // Analyze consecutive matches
-  for (let i = 0; i < symbols.length; i++) {
-    const { type: currentSymbol, position } = symbols[i];
-    const isWild = currentSymbol === GAME_PIECES.WILD;
+  // Check each possible starting position
+  for (let startIdx = 0; startIdx < paylineSymbols.length - 2; startIdx++) {
+    let currentSymbol = paylineSymbols[startIdx].type;
+    let isStartWild = currentSymbol === GAME_PIECES.WILD;
     
-    console.log(`Position ${position}: Symbol ${currentSymbol} ${isWild ? '(WILD)' : ''}`);
+    // Track current sequence
+    let currentMatch = {
+      length: 1,
+      symbol: isStartWild ? -1 : currentSymbol,
+      positions: [paylineSymbols[startIdx].position],
+      hasWild: isStartWild
+    };
 
-    if (currentRun.count === 0) {
-      // Start new run
-      currentRun = {
-        symbol: isWild ? -1 : currentSymbol,
-        count: 1,
-        positions: [position],
-        hasWild: isWild
-      };
-    } else {
-      const canMatch = 
-        currentSymbol === currentRun.symbol || 
+    // Look ahead for consecutive matches
+    for (let j = startIdx + 1; j < paylineSymbols.length; j++) {
+      const nextSymbol = paylineSymbols[j].type;
+      const isWild = nextSymbol === GAME_PIECES.WILD;
+
+      // Determine if this symbol can continue the sequence
+      const canContinueSequence = 
         isWild || 
-        (currentRun.symbol === -1 && !isWild);
+        nextSymbol === currentMatch.symbol ||
+        (currentMatch.symbol === -1 && !isWild);
 
-      if (canMatch) {
-        // Continue current run
-        if (currentRun.symbol === -1 && !isWild) {
-          currentRun.symbol = currentSymbol;
-        }
-        currentRun.count++;
-        currentRun.positions.push(position);
-        currentRun.hasWild = currentRun.hasWild || isWild;
-      } else {
-        // End current run and check if it's better than best run
-        if (currentRun.count >= 3 && currentRun.count > bestRun.count) {
-          bestRun = { ...currentRun };
-        }
-        // Start new run with current symbol
-        currentRun = {
-          symbol: currentSymbol,
-          count: 1,
-          positions: [position],
-          hasWild: isWild
-        };
+      if (!canContinueSequence) {
+        break;
       }
+
+      // Update sequence information
+      currentMatch.length++;
+      currentMatch.positions.push(paylineSymbols[j].position);
+      currentMatch.hasWild = currentMatch.hasWild || isWild;
+      
+      // If we started with a wild or haven't set a symbol yet, use this non-wild symbol
+      if (currentMatch.symbol === -1 && !isWild) {
+        currentMatch.symbol = nextSymbol;
+      }
+    }
+
+    // Check if this is the longest valid match we've found
+    if (currentMatch.length >= 3 && currentMatch.length > longestMatch.length) {
+      longestMatch = {
+        startIndex: startIdx,
+        length: currentMatch.length,
+        symbol: currentMatch.symbol,
+        positions: currentMatch.positions,
+        hasWild: currentMatch.hasWild
+      };
     }
   }
 
-  // Check final run
-  if (currentRun.count >= 3 && currentRun.count > bestRun.count) {
-    bestRun = { ...currentRun };
-  }
+  const hasMatches = longestMatch.length >= 3;
+  const winnings = hasMatches ? longestMatch.length * (longestMatch.hasWild ? 2 : 1) : 0;
 
-  const hasMatches = bestRun.count >= 3;
-  const winnings = hasMatches ? bestRun.count * (bestRun.hasWild ? 2 : 1) : 0;
-
-  console.log(`Payline ${paylineIndex} result:`, {
+  console.log('Match result:', {
+    paylineIndex,
     hasMatches,
-    matchCount: bestRun.count,
-    positions: bestRun.positions,
-    symbol: bestRun.symbol,
-    hasWild: bestRun.hasWild,
+    matchLength: longestMatch.length,
+    symbol: longestMatch.symbol,
+    positions: longestMatch.positions,
+    hasWild: longestMatch.hasWild,
     winnings
   });
 
   return {
     hasMatches,
     winnings,
-    hasWild: bestRun.hasWild,
-    matchedPositions: bestRun.positions,
+    hasWild: longestMatch.hasWild,
+    matchedPositions: longestMatch.positions,
     symbolCombination: hasMatches ? 
-      `${bestRun.count}x ${bestRun.symbol} ${bestRun.hasWild ? '(with WILD)' : ''}` : 
+      `${longestMatch.length}x ${longestMatch.symbol} ${longestMatch.hasWild ? '(with WILD)' : ''}` : 
       'No matches',
     verificationId
   };
