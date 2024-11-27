@@ -28,11 +28,18 @@ export const checkGameState = (
     updatedGrid: grid
   };
 
-  const newGrid = [...grid];
+  const newGrid = grid.map(row => row.map(cell => ({...cell})));
   let currentTotalWinnings = 0;
   let highestMultiplier = 0;
   let hasWildBonus = false;
   let hasMatches = false;
+
+  // Reset all matches before checking new ones
+  newGrid.forEach(row => {
+    row.forEach(cell => {
+      cell.matched = false;
+    });
+  });
 
   PAYLINES.forEach((payline) => {
     const result = handlePaylineCheck(payline, newGrid, baseBet, betMultiplier);

@@ -88,7 +88,16 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       return;
     }
 
-    const result = checkGameState(grid, baseBet, betMultiplier, onWinningsUpdate);
+    // Reset matched state before checking new matches
+    const resetGrid = grid.map(row => 
+      row.map(cell => ({
+        ...cell,
+        matched: false
+      }))
+    );
+    setGrid(resetGrid);
+
+    const result = checkGameState(resetGrid, baseBet, betMultiplier, onWinningsUpdate);
     console.log('Game state check result:', result);
     
     if (!result.hasMatches) {
@@ -133,11 +142,12 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     
     onWinningsUpdate(-(baseBet * betMultiplier));
     
-    // Generate a completely new grid with unique keys
+    // Generate a completely new grid with unique keys and reset matched state
     const timestamp = Date.now();
     const newGrid = createInitialGrid().map((row, rowIndex) => 
       row.map((cell, colIndex) => ({
         ...cell,
+        matched: false, // Ensure matched state is reset
         key: `${timestamp}-${rowIndex}-${colIndex}-${Math.random()}`,
         isDropping: true,
         dropDelay: (rowIndex * GRID_SIZE + colIndex) * 100
