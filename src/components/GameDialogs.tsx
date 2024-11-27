@@ -5,6 +5,8 @@ interface GameDialogsProps {
   showLoseDialog: boolean;
   showWinDialog: boolean;
   isBigWin: boolean;
+  winMultiplier?: number;
+  totalWinAmount?: number;
   onLoseDialogClose: () => void;
   onWinDialogClose: () => void;
 }
@@ -13,6 +15,8 @@ const GameDialogs = ({
   showLoseDialog,
   showWinDialog,
   isBigWin,
+  winMultiplier = 0,
+  totalWinAmount = 0,
   onLoseDialogClose,
   onWinDialogClose
 }: GameDialogsProps) => {
@@ -26,14 +30,16 @@ const GameDialogs = ({
         duration={5000}
       />
 
-      <WinningDialog
-        isOpen={showWinDialog}
-        onClose={onWinDialogClose}
-        message={isBigWin ? "MASSIVE WIN! 🎰 🎉\n50X OR HIGHER!" : "Congratulations! You've hit a winning combination! 🎉"}
-        emoji={<Trophy className={`text-yellow-500 w-16 h-16 ${isBigWin ? 'animate-flash' : ''}`} />}
-        duration={5000}
-        className={isBigWin ? 'animate-flash' : ''}
-      />
+      {isBigWin && (
+        <WinningDialog
+          isOpen={showWinDialog}
+          onClose={onWinDialogClose}
+          message={`MASSIVE WIN! 🎰 🎉\n${winMultiplier}X MULTIPLIER!\nTotal Win: ${totalWinAmount.toFixed(3)} SOL`}
+          emoji={<Trophy className="text-yellow-500 w-16 h-16 animate-flash" />}
+          duration={5000}
+          className="animate-flash"
+        />
+      )}
     </>
   );
 };

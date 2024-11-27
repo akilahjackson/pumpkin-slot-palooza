@@ -110,6 +110,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
     let hasMatches = false;
     const newGrid = [...grid];
     let totalWinnings = 0;
+    let highestMultiplier = 0;
     
     PAYLINES.forEach((payline) => {
       const result = handlePaylineCheck(payline, newGrid, baseBet, betMultiplier);
@@ -123,18 +124,16 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
         const multiplier = result.winnings / (baseBet * betMultiplier);
         console.log('Win multiplier:', multiplier);
         
+        if (multiplier > highestMultiplier) {
+          highestMultiplier = multiplier;
+        }
+
         const isBigWinAmount = multiplier >= 50;
         if (isBigWinAmount) {
           console.log('Big win detected! Multiplier:', multiplier);
           setIsBigWin(true);
           setShowWinDialog(true);
         }
-
-        toast({
-          title: "🌟 Winning Combination!",
-          description: `${result.matchCount} matches with ${result.winnings.toFixed(3)} SOL payout${result.hasWild ? " (Wild Bonus!)" : ""}`,
-          className: "bg-gradient-to-r from-amber-200 to-yellow-400 text-amber-900",
-        });
       }
     });
 
@@ -150,9 +149,13 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       audioManager.stopBackgroundMusic();
       audioManager.playWinSound();
       setIsDisplayingWin(true);
-      if (!isBigWin) {
+      
+      // Only show win dialog for big wins (50x or higher)
+      if (highestMultiplier >= 50) {
+        setIsBigWin(true);
         setShowWinDialog(true);
       }
+      
       triggerWinningEffects();
       setTimeout(resetGameState, 2500);
     }
@@ -172,6 +175,8 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
           showLoseDialog={showLoseDialog}
           showWinDialog={showWinDialog}
           isBigWin={isBigWin}
+          winMultiplier={Math.floor(totalWinnings / (baseBet * betMultiplier))}
+          totalWinAmount={totalWinnings}
           onLoseDialogClose={() => setShowLoseDialog(false)}
           onWinDialogClose={() => setShowWinDialog(false)}
         />
