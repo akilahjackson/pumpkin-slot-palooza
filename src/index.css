@@ -33,7 +33,7 @@
 
 @layer components {
   .game-grid {
-    @apply grid gap-1 p-2 rounded-lg bg-amber-900/[0.15] backdrop-blur-sm shadow-[0_0_20px_rgba(251,191,36,0.2)];
+    @apply grid gap-1 p-2 rounded-lg;
     grid-template-columns: repeat(6, 1fr);
   }
 

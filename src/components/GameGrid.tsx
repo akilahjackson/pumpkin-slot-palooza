@@ -57,14 +57,14 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       setGrid(updatedGrid);
       
       setTimeout(() => {
-        checkAllPaylines();
+        checkPaylines();
         setIsSpinning(false);
       }, 500);
     }, 1000);
   };
 
-  const checkAllPaylines = async () => {
-    if (!grid.length) return false;
+  const checkPaylines = () => {
+    if (!grid.length) return;
     
     let hasMatches = false;
     const newGrid = [...grid];
@@ -92,66 +92,13 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
       }
     });
 
-    // Only show lose dialog and play lose sound if there are no matches
     if (!hasMatches) {
       audioManager.stopBackgroundMusic();
       audioManager.playLoseSound();
       setShowLoseDialog(true);
     }
 
-    if (hasMatches) {
-      setGrid(newGrid);
-      await new Promise(resolve => setTimeout(resolve, 500));
-      await handleMatches();
-    }
-
-    return hasMatches;
-  };
-
-  const handleMatches = async () => {
-    const newGrid = [...grid];
-    
-    for (let col = 0; col < GRID_SIZE; col++) {
-      let writeRow = GRID_SIZE - 1;
-      
-      for (let row = GRID_SIZE - 1; row >= 0; row--) {
-        if (!newGrid[row][col].matched) {
-          if (writeRow !== row) {
-            newGrid[writeRow][col] = {
-              ...newGrid[row][col],
-              isDropping: true
-            };
-            newGrid[row][col] = {
-              type: Math.floor(Math.random() * PUMPKIN_TYPES.length),
-              matched: false,
-              key: `${Date.now()}-${Math.random()}`,
-              isDropping: true
-            };
-          }
-          writeRow--;
-        }
-      }
-      
-      while (writeRow >= 0) {
-        newGrid[writeRow][col] = {
-          type: Math.floor(Math.random() * PUMPKIN_TYPES.length),
-          matched: false,
-          key: `${Date.now()}-${Math.random()}`,
-          isDropping: true
-        };
-        writeRow--;
-      }
-    }
-    
     setGrid(newGrid);
-    
-    setTimeout(() => {
-      const updatedGrid = newGrid.map(row =>
-        row.map(cell => ({ ...cell, isDropping: false }))
-      );
-      setGrid(updatedGrid);
-      checkAllPaylines();
-    }, 300);
   };
 
   if (!grid.length) {
@@ -160,7 +107,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   }
 
   return (
-    <Card className="p-8 bg-gradient-to-b from-amber-900/[0.15] to-orange-900/[0.15] border-amber-600/20 backdrop-blur-sm shadow-xl">
+    <Card className="bg-transparent border-amber-600/20 backdrop-blur-sm shadow-xl p-8">
       <div className="space-y-6">
         <GameBoard grid={grid} />
         <GameControls onSpin={spin} isSpinning={isSpinning} />
