@@ -3,6 +3,7 @@ export interface Cell {
   matched: boolean;
   key: string;
   isDropping: boolean;
+  dropDelay?: number;
 }
 
 export interface Position {
