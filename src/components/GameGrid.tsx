@@ -164,7 +164,7 @@ const GameGrid = ({ betMultiplier, onWinningsUpdate }: GameGridProps) => {
   }
 
   return (
-    <Card className="p-8 bg-gradient-to-b from-amber-900/[0.15] to-orange-900/[0.15] border-amber-600/20 backdrop-blur-sm">
+    <Card className="p-8 bg-gradient-to-b from-amber-900/[0.15] to-orange-900/[0.15] border-amber-600/20 backdrop-blur-sm shadow-xl">
       <div className="space-y-6">
         <div className="game-grid">
           {grid.map((row, i) =>
